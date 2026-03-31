@@ -1,5 +1,6 @@
 package com.nhom5.pharma;
 
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -11,6 +12,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.widget.ImageViewCompat;
 import androidx.fragment.app.Fragment;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.nhom5.pharma.feature.dangnhap.DangNhapActivity;
 import com.nhom5.pharma.feature.lohang.LoHangFragment;
 import com.nhom5.pharma.feature.nhacungcap.NhaCungCapFragment;
 import com.nhom5.pharma.feature.nhaphang.NhapHangFragment;
@@ -30,10 +33,21 @@ public class MainActivity extends AppCompatActivity {
 
     private ImageView[] navIcons;
     private TextView[] navLabels;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        mAuth = FirebaseAuth.getInstance();
+        // Kiểm tra đăng nhập
+        if (mAuth.getCurrentUser() == null) {
+            Intent intent = new Intent(this, DangNhapActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
+
         setContentView(R.layout.activity_main);
 
         navIcons = new ImageView[]{

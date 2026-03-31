@@ -8,6 +8,7 @@
 
     <!-- Background Colors -->
     <color name="white">#ffffff</color>
+    <color name="black">#000000</color>
     <color name="search_bg">#f8fafc</color>
     <color name="table_header_bg">#e6f1fe</color>
     <color name="nav_bg">#dff7fb</color>

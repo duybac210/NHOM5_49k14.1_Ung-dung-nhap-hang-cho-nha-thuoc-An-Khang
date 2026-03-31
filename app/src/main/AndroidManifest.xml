@@ -25,6 +25,11 @@
         </activity>
 
         <activity
+            android:name=".feature.dangnhap.DangNhapActivity"
+            android:exported="false"
+            android:theme="@style/Theme.PharmaImportManager" />
+
+        <activity
             android:name=".feature.nhaphang.ChiTietNhapHangActivity"
             android:exported="false"
             android:label="Chi tiết đơn nhập"
