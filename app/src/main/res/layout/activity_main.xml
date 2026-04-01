@@ -14,15 +14,15 @@
         android:layout_height="0dp"
         android:layout_weight="1" />
 
-    <!-- Thanh điều hướng tùy chỉnh (thay BottomNavigationView) -->
+    <!-- Thanh điều hướng tùy chỉnh -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="67dp"
         android:background="#dff7fb"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingStart="5dp"
-        android:paddingEnd="5dp">
+        android:paddingStart="2dp"
+        android:paddingEnd="2dp">
 
         <LinearLayout
             android:id="@+id/nav_tab_orders"
@@ -39,7 +39,6 @@
                 android:id="@+id/iv_nav_orders"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:contentDescription="@string/nav_orders"
                 android:src="@drawable/ic_orders"
                 app:tint="#5cc849" />
 
@@ -49,10 +48,11 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:fontFamily="sans-serif-medium"
-                android:text="@string/nav_orders"
+                android:text="Đơn hàng"
                 android:textColor="#5cc849"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:maxLines="1" />
         </LinearLayout>
 
         <LinearLayout
@@ -70,7 +70,6 @@
                 android:id="@+id/iv_nav_products"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:contentDescription="@string/nav_products"
                 android:src="@drawable/ic_products"
                 app:tint="#000000" />
 
@@ -80,10 +79,11 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:fontFamily="sans-serif-medium"
-                android:text="@string/nav_products"
+                android:text="Sản phẩm"
                 android:textColor="#000000"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:maxLines="1" />
         </LinearLayout>
 
         <LinearLayout
@@ -101,7 +101,6 @@
                 android:id="@+id/iv_nav_batches"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:contentDescription="@string/nav_batches"
                 android:src="@drawable/ic_batches"
                 app:tint="#000000" />
 
@@ -111,17 +110,18 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:fontFamily="sans-serif-medium"
-                android:text="@string/nav_batches"
+                android:text="Lô hàng"
                 android:textColor="#000000"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:maxLines="1" />
         </LinearLayout>
 
         <LinearLayout
             android:id="@+id/nav_tab_suppliers"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="1.2"
             android:background="?attr/selectableItemBackground"
             android:clickable="true"
             android:focusable="true"
@@ -132,7 +132,6 @@
                 android:id="@+id/iv_nav_suppliers"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:contentDescription="@string/nav_suppliers"
                 android:src="@drawable/ic_suppliers"
                 app:tint="#000000" />
 
@@ -142,10 +141,11 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:fontFamily="sans-serif-medium"
-                android:text="@string/nav_suppliers"
+                android:text="Nhà cung cấp"
                 android:textColor="#000000"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:maxLines="1" />
         </LinearLayout>
 
         <LinearLayout
@@ -163,7 +163,6 @@
                 android:id="@+id/iv_nav_manage"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:contentDescription="@string/nav_manage"
                 android:src="@drawable/ic_manage"
                 app:tint="#000000" />
 
@@ -173,10 +172,11 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:fontFamily="sans-serif-medium"
-                android:text="@string/nav_manage"
+                android:text="Quản lý"
                 android:textColor="#000000"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:maxLines="1" />
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>
