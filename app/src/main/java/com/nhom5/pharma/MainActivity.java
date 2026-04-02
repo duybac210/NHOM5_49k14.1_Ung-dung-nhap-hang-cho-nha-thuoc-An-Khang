@@ -39,14 +39,16 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
+        // TẠM THỜI BỎ QUA KIỂM TRA ĐĂNG NHẬP ĐỂ TEST NHÀ CUNG CẤP
+        /*
         mAuth = FirebaseAuth.getInstance();
-        // Kiểm tra đăng nhập
         if (mAuth.getCurrentUser() == null) {
             Intent intent = new Intent(this, DangNhapActivity.class);
             startActivity(intent);
             finish();
             return;
         }
+        */
 
         setContentView(R.layout.activity_main);
 
@@ -77,7 +79,8 @@ public class MainActivity extends AppCompatActivity {
         tabSuppliers.setOnClickListener(v -> selectTab(TAB_SUPPLIERS));
         tabManage.setOnClickListener(v -> selectTab(TAB_MANAGE));
 
-        selectTab(TAB_ORDERS);
+        // CHỌN LUÔN TAB NHÀ CUNG CẤP KHI VỪA VÀO APP
+        selectTab(TAB_SUPPLIERS);
     }
 
     private void selectTab(int index) {
@@ -99,8 +102,8 @@ public class MainActivity extends AppCompatActivity {
                 selected = new QuanLyFragment();
                 break;
             default:
-                selected = new NhapHangFragment();
-                index = TAB_ORDERS;
+                selected = new NhaCungCapFragment();
+                index = TAB_SUPPLIERS;
                 break;
         }
 
@@ -110,7 +113,9 @@ public class MainActivity extends AppCompatActivity {
             boolean isSelected = (i == index);
             int color = isSelected ? ACTIVE_COLOR : INACTIVE_COLOR;
             ImageViewCompat.setImageTintList(navIcons[i], ColorStateList.valueOf(color));
-            navLabels[i].setTextColor(color);
+            if (navLabels[i] != null) {
+                navLabels[i].setTextColor(color);
+            }
         }
     }
 
