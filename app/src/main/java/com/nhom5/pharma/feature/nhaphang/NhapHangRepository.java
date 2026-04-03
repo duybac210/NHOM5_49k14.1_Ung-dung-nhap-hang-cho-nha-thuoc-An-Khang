@@ -28,6 +28,11 @@ public class NhapHangRepository {
                 .orderBy("ngayTao", Query.Direction.DESCENDING);
     }
 
+    public Query getAllLoHang() {
+        return db.collection("LoHang")
+                .orderBy(FieldPath.documentId(), Query.Direction.DESCENDING);
+    }
+
     // Tìm kiếm theo Mã đơn (Document ID) thời gian thực
     public Query searchByMaDon(String searchText) {
         if (searchText == null || searchText.trim().isEmpty()) {
@@ -38,6 +43,18 @@ public class NhapHangRepository {
                 .orderBy(FieldPath.documentId())
                 .startAt(searchText)
                 .endAt(searchText + "\uf8ff");
+    }
+
+    public Query searchLoHang(String searchText) {
+        if (searchText == null || searchText.trim().isEmpty()) {
+            return getAllLoHang();
+        }
+
+        String keyword = searchText.trim();
+        return db.collection("LoHang")
+                .orderBy(FieldPath.documentId())
+                .startAt(keyword)
+                .endAt(keyword + "\uf8ff");
     }
 
     public Task<DocumentSnapshot> getNhapHangById(String id) {
