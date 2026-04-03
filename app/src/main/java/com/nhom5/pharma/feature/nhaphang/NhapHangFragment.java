@@ -65,7 +65,6 @@ public class NhapHangFragment extends Fragment {
             searchEditText.addTextChangedListener(new TextWatcher() {
                 @Override
                 public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    // Gọi hàm tìm kiếm theo Mã đơn (Document ID)
                     Query query = repository.searchByMaDon(s.toString().toUpperCase());
 
                     FirestoreRecyclerOptions<NhapHang> options = new FirestoreRecyclerOptions.Builder<NhapHang>()
