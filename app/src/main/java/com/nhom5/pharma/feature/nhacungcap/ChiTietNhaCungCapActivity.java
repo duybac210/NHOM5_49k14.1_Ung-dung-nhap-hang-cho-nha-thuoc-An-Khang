@@ -13,7 +13,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.nhom5.pharma.R;
-import java.text.DecimalFormat;
 
 public class ChiTietNhaCungCapActivity extends AppCompatActivity {
 
@@ -69,14 +68,15 @@ public class ChiTietNhaCungCapActivity extends AppCompatActivity {
     private void bindDataToDetail() {
         if (ncc == null) return;
         tvTen.setText(ncc.getTenNCC());
-        tvMa.setText("Mã NCC: " + ncc.getMaNCC());
+        tvMa.setText("Mã NCC: " + ncc.getId());
         tvMST.setText("Mã số thuế: " + ncc.getMaSoThue());
-        tvSDT.setText(ncc.getSoDienThoai());
+        tvSDT.setText(ncc.getSdt());
         tvEmail.setText(ncc.getEmail());
         tvDiaChi.setText(ncc.getDiaChi());
-        DecimalFormat formatter = new DecimalFormat("###,###,###");
-        tvGiaTri.setText(formatter.format(ncc.getTongMua()));
-        tvTongDon.setText("12"); // Giả lập dữ liệu thống kê
+        
+        // Lấy dữ liệu thật từ field TongDon và GiaTri trên Firestore
+        tvTongDon.setText(ncc.getTongDon() != null ? ncc.getTongDon() : "0");
+        tvGiaTri.setText(ncc.getGiaTri() != null ? ncc.getGiaTri() : "0");
     }
 
     private void initEditViews() {
@@ -93,19 +93,19 @@ public class ChiTietNhaCungCapActivity extends AppCompatActivity {
     private void bindDataToEdit() {
         if (ncc == null) return;
         tvEditTen.setText(ncc.getTenNCC());
-        edtMaNCC.setText(ncc.getMaNCC());
+        edtMaNCC.setText(ncc.getId());
         edtMST.setText(ncc.getMaSoThue());
-        edtSDT.setText(ncc.getSoDienThoai());
+        edtSDT.setText(ncc.getSdt());
         edtEmail.setText(ncc.getEmail());
         edtDiaChi.setText(ncc.getDiaChi());
         
-        DecimalFormat formatter = new DecimalFormat("###,###,###");
-        tvEditGiaTri.setText(formatter.format(ncc.getTongMua()));
-        tvEditTongDon.setText("12");
+        // Hiển thị dữ liệu thật trên màn hình sửa
+        tvEditTongDon.setText(ncc.getTongDon() != null ? ncc.getTongDon() : "0");
+        tvEditGiaTri.setText(ncc.getGiaTri() != null ? ncc.getGiaTri() : "0");
     }
 
     private void saveChanges() {
-        ncc.setSoDienThoai(edtSDT.getText().toString());
+        ncc.setSdt(edtSDT.getText().toString());
         ncc.setEmail(edtEmail.getText().toString());
         ncc.setDiaChi(edtDiaChi.getText().toString());
 

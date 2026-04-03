@@ -9,7 +9,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.nhom5.pharma.R;
-import java.text.DecimalFormat;
 
 public class NhaCungCapAdapter extends FirestoreRecyclerAdapter<NhaCungCap, NhaCungCapAdapter.ViewHolder> {
     private OnItemClickListener listener;
@@ -20,18 +19,17 @@ public class NhaCungCapAdapter extends FirestoreRecyclerAdapter<NhaCungCap, NhaC
 
     @Override
     protected void onBindViewHolder(@NonNull ViewHolder holder, int position, @NonNull NhaCungCap model) {
-        holder.tvMaNCC.setText(model.getMaNCC());
+        // model.getId() lúc này sẽ tự động lấy Document ID (ví dụ NCC0002)
+        holder.tvMaNCC.setText(model.getId()); 
         holder.tvTenNCC.setText(model.getTenNCC());
-        holder.tvSDT.setText(model.getSoDienThoai());
+        holder.tvSDT.setText(model.getSdt()); 
         holder.tvEmail.setText(model.getEmail());
         
-        DecimalFormat formatter = new DecimalFormat("###,###,###");
-        holder.tvTongMua.setText(formatter.format(model.getTongMua()));
+        // Lấy trực tiếp trường GiaTri từ Firestore (vì Firestore của bạn đã định dạng chuỗi sẵn)
+        holder.tvTongMua.setText(model.getGiaTri() != null ? model.getGiaTri() : "0");
 
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
-                // Gán ID từ Firestore vào model trước khi truyền đi
-                model.setId(getSnapshots().getSnapshot(position).getId());
                 listener.onItemClick(model);
             }
         });
