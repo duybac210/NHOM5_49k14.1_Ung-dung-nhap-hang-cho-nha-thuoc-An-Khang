@@ -1,6 +1,6 @@
 package com.nhom5.pharma.feature.nhaphang;
 
-import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -9,6 +9,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -23,6 +25,7 @@ public class NhapHangFragment extends Fragment {
 
     private RecyclerView recyclerViewNhapHang;
     private EditText searchEditText;
+    private ImageButton btnAddNew;
     private NhapHangAdapter adapter;
     private final NhapHangRepository repository = NhapHangRepository.getInstance();
 
@@ -31,11 +34,24 @@ public class NhapHangFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_nhap_hang, container, false);
+        
+        // Ánh xạ từ layout fragment và include layout
         recyclerViewNhapHang = view.findViewById(R.id.recyclerViewNhapHang);
         searchEditText = view.findViewById(R.id.searchEditText);
+        btnAddNew = view.findViewById(R.id.btnAddNew);
 
         setupRecyclerView();
         setupSearchFunctionality();
+        
+        if (btnAddNew != null) {
+            btnAddNew.setOnClickListener(v -> {
+                // Giả định bạn có màn hình thêm mới, nếu chưa có tôi hiện Toast demo
+                Toast.makeText(getContext(), "Mở màn hình tạo đơn nhập hàng mới", Toast.LENGTH_SHORT).show();
+                // Intent intent = new Intent(getActivity(), TaoNhapHangActivity.class);
+                // startActivity(intent);
+            });
+        }
+
         return view;
     }
 
@@ -47,15 +63,13 @@ public class NhapHangFragment extends Fragment {
 
         adapter = new NhapHangAdapter(options);
         
-        // SỬA LỖI VĂNG APP: Đây là cách đơn giản nhất để chặn lỗi "Inconsistency detected" 
-        // mà không cần tạo thêm file mới. 
         recyclerViewNhapHang.setLayoutManager(new LinearLayoutManager(getContext()) {
             @Override
             public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
                 try {
                     super.onLayoutChildren(recycler, state);
                 } catch (IndexOutOfBoundsException e) {
-                    Log.e("RecyclerView", "Chặn lỗi văng app tại đây");
+                    Log.e("RecyclerView", "Chặn lỗi văng app");
                 }
             }
         });
@@ -68,7 +82,8 @@ public class NhapHangFragment extends Fragment {
             searchEditText.addTextChangedListener(new TextWatcher() {
                 @Override
                 public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    Query query = repository.searchByTenNhaCungCap(s.toString());
+                    Query query = repository.searchByMaDon(s.toString().toUpperCase());
+
                     FirestoreRecyclerOptions<NhapHang> options = new FirestoreRecyclerOptions.Builder<NhapHang>()
                             .setQuery(query, NhapHang.class)
                             .build();
