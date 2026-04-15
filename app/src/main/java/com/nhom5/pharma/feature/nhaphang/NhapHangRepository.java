@@ -1,15 +1,12 @@
 package com.nhom5.pharma.feature.nhaphang;
 
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.WriteBatch;
-
-import java.util.Map;
 
 public class NhapHangRepository {
     private static NhapHangRepository instance;
@@ -27,9 +24,13 @@ public class NhapHangRepository {
     }
 
     public Query getAllNhapHang() {
-        // Đồng bộ với tên field trong TaoDonNhapActivity là "createdAt"
         return db.collection("NhapHang")
-                .orderBy("createdAt", Query.Direction.DESCENDING);
+                .orderBy("ngayTao", Query.Direction.DESCENDING);
+    }
+
+    public Query getAllLoHang() {
+        return db.collection("LoHang")
+                .orderBy(FieldPath.documentId(), Query.Direction.DESCENDING);
     }
 
     // Tìm kiếm theo Mã đơn (Document ID) thời gian thực
@@ -44,8 +45,16 @@ public class NhapHangRepository {
                 .endAt(searchText + "\uf8ff");
     }
 
-    public Task<DocumentReference> addNhapHang(Map<String, Object> orderData) {
-        return db.collection("NhapHang").add(orderData);
+    public Query searchLoHang(String searchText) {
+        if (searchText == null || searchText.trim().isEmpty()) {
+            return getAllLoHang();
+        }
+
+        String keyword = searchText.trim();
+        return db.collection("LoHang")
+                .orderBy(FieldPath.documentId())
+                .startAt(keyword)
+                .endAt(keyword + "\uf8ff");
     }
 
     public Task<DocumentSnapshot> getNhapHangById(String id) {

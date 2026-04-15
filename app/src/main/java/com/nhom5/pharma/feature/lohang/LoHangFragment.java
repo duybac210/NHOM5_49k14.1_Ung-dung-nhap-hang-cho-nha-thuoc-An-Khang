@@ -1,14 +1,26 @@
 package com.nhom5.pharma.feature.lohang;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 
+import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.google.firebase.firestore.Query;
 import com.nhom5.pharma.R;
+import com.nhom5.pharma.feature.nhaphang.LoHang;
+import com.nhom5.pharma.feature.nhaphang.LoHangAdapter;
+import com.nhom5.pharma.feature.nhaphang.NhapHangRepository;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -17,50 +29,85 @@ import com.nhom5.pharma.R;
  */
 public class LoHangFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private RecyclerView recyclerViewNhapHang;
+    private EditText searchEditText;
+    private LoHangAdapter adapter;
+    private final NhapHangRepository repository = NhapHangRepository.getInstance();
 
     public LoHangFragment() {
-        // Required empty public constructor
-    }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment LoHangFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static LoHangFragment newInstance(String param1, String param2) {
-        LoHangFragment fragment = new LoHangFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_lo_hang, container, false);
+        recyclerViewNhapHang = view.findViewById(R.id.recyclerViewNhapHang);
+        searchEditText = view.findViewById(R.id.searchEditText);
+
+        setupRecyclerView();
+        setupSearchFunctionality();
+        return view;
+    }
+
+    private void setupRecyclerView() {
+        Query query = repository.getAllLoHang();
+        FirestoreRecyclerOptions<LoHang> options = new FirestoreRecyclerOptions.Builder<LoHang>()
+                .setQuery(query, LoHang.class)
+                .build();
+
+        adapter = new LoHangAdapter(options);
+
+        recyclerViewNhapHang.setLayoutManager(new LinearLayoutManager(getContext()) {
+            @Override
+            public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
+                try {
+                    super.onLayoutChildren(recycler, state);
+                } catch (IndexOutOfBoundsException e) {
+                    Log.e("RecyclerView", "Chan loi vang app");
+                }
+            }
+        });
+
+        recyclerViewNhapHang.setAdapter(adapter);
+    }
+
+    private void setupSearchFunctionality() {
+        if (searchEditText == null) {
+            return;
+        }
+        searchEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                Query query = repository.searchLoHang(s.toString());
+                FirestoreRecyclerOptions<LoHang> options = new FirestoreRecyclerOptions.Builder<LoHang>()
+                        .setQuery(query, LoHang.class)
+                        .build();
+                adapter.updateOptions(options);
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (adapter != null) {
+            adapter.startListening();
         }
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_lo_hang, container, false);
+    public void onStop() {
+        super.onStop();
+        if (adapter != null) {
+            adapter.stopListening();
+        }
     }
 }

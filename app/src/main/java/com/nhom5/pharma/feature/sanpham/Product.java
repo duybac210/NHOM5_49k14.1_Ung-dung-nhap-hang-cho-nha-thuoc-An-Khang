@@ -6,39 +6,52 @@ import java.util.Date;
 
 @IgnoreExtraProperties
 public class Product {
-    private String maID;
-    private String ten;
-    private double giaVon;
-    private double giaBan;
-    private String hangSanXuat;
-    private String nuocSanXuat;
-    private int trangThai;
+    private String id; // Document ID (SP0001, ...)
+    private String tenSP;
+    private double giavon;
+    private String maVach;
+    private String moTa;
+    private String hangSX;
+    private String nuocSX;
+    private boolean trangThai;
+    
     @ServerTimestamp
-    private Date createdAt;
+    private Date ngayTao;
 
-    public Product() {}
+    @ServerTimestamp
+    private Date ngayCapNhat;
 
-    public String getMaID() { return maID; }
-    public void setMaID(String maID) { this.maID = maID; }
+    public Product() {
+        // Required for Firestore
+    }
 
-    public String getTen() { return ten; }
-    public void setTen(String ten) { this.ten = ten; }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
-    public double getGiaVon() { return giaVon; }
-    public void setGiaVon(double giaVon) { this.giaVon = giaVon; }
+    public String getTenSP() { return tenSP; }
+    public void setTenSP(String tenSP) { this.tenSP = tenSP; }
 
-    public double getGiaBan() { return giaBan; }
-    public void setGiaBan(double giaBan) { this.giaBan = giaBan; }
+    public double getGiavon() { return giavon; }
+    public void setGiavon(double giavon) { this.giavon = giavon; }
 
-    public String getHangSanXuat() { return hangSanXuat; }
-    public void setHangSanXuat(String hangSanXuat) { this.hangSanXuat = hangSanXuat; }
+    public String getMaVach() { return maVach; }
+    public void setMaVach(String maVach) { this.maVach = maVach; }
 
-    public String getNuocSanXuat() { return nuocSanXuat; }
-    public void setNuocSanXuat(String nuocSanXuat) { this.nuocSanXuat = nuocSanXuat; }
+    public String getMoTa() { return moTa; }
+    public void setMoTa(String moTa) { this.moTa = moTa; }
 
-    public int getTrangThai() { return trangThai; }
-    public void setTrangThai(int trangThai) { this.trangThai = trangThai; }
+    public String getHangSX() { return hangSX; }
+    public void setHangSX(String hangSX) { this.hangSX = hangSX; }
 
-    public Date getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
+    public String getNuocSX() { return nuocSX; }
+    public void setNuocSX(String nuocSX) { this.nuocSX = nuocSX; }
+
+    public boolean isTrangThai() { return trangThai; }
+    public void setTrangThai(boolean trangThai) { this.trangThai = trangThai; }
+
+    public Date getNgayTao() { return ngayTao; }
+    public void setNgayTao(Date ngayTao) { this.ngayTao = ngayTao; }
+
+    public Date getNgayCapNhat() { return ngayCapNhat; }
+    public void setNgayCapNhat(Date ngayCapNhat) { this.ngayCapNhat = ngayCapNhat; }
 }
