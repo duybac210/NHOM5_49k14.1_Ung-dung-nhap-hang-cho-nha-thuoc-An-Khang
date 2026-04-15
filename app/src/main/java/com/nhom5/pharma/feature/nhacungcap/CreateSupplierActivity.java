@@ -1,7 +1,7 @@
 package com.nhom5.pharma.feature.nhacungcap;
 
 import android.os.Bundle;
-import android.util.Patterns;
+import android.os.Handler;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -10,15 +10,13 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.nhom5.pharma.R;
 import com.nhom5.pharma.util.SuccessDialogHelper;
 
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Màn hình thêm mới Nhà cung cấp
- */
 public class CreateSupplierActivity extends AppCompatActivity {
 
     private EditText etName, etPhone, etEmail, etAddress;
@@ -31,20 +29,12 @@ public class CreateSupplierActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_supplier);
 
-        // Khởi tạo Firestore
         db = FirebaseFirestore.getInstance();
-
-        // Ánh xạ View
         initViews();
 
-        // Xử lý sự kiện nút quay lại
         ivBack.setOnClickListener(v -> finish());
-
-        // Xử lý sự kiện nút Bỏ qua
         btnBoQua.setOnClickListener(v -> finish());
-
-        // Xử lý sự kiện nút Lưu
-        btnLuu.setOnClickListener(v -> handleSaveSupplier());
+        btnLuu.setOnClickListener(v -> generateNCCIDAndSave());
     }
 
     private void initViews() {
@@ -57,59 +47,60 @@ public class CreateSupplierActivity extends AppCompatActivity {
         ivBack = findViewById(R.id.ivBack);
     }
 
-    private void handleSaveSupplier() {
+    private void generateNCCIDAndSave() {
         String name = etName.getText().toString().trim();
-        String phone = etPhone.getText().toString().trim();
-        String email = etEmail.getText().toString().trim();
-        String address = etAddress.getText().toString().trim();
-
-        // Validate dữ liệu
         if (name.isEmpty()) {
             Toast.makeText(this, "Vui lòng nhập tên nhà cung cấp", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        if (phone.isEmpty()) {
-            Toast.makeText(this, "Vui lòng nhập số điện thoại", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        btnLuu.setEnabled(false);
+        // Lấy NCC mới nhất từ collection "NhaCungCap"
+        db.collection("NhaCungCap")
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    String nextId = "NCC0001";
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        String lastId = queryDocumentSnapshots.getDocuments().get(0).getId();
+                        if (lastId.startsWith("NCC")) {
+                            try {
+                                int num = Integer.parseInt(lastId.substring(3));
+                                nextId = String.format("NCC%04d", num + 1);
+                            } catch (Exception e) {
+                                // Fallback if ID format is weird
+                            }
+                        }
+                    }
+                    saveSupplier(nextId);
+                })
+                .addOnFailureListener(e -> {
+                    btnLuu.setEnabled(true);
+                    Toast.makeText(this, "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
 
-        if (email.isEmpty()) {
-            Toast.makeText(this, "Vui lòng nhập email", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            Toast.makeText(this, "Email không đúng định dạng", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (address.isEmpty()) {
-            Toast.makeText(this, "Vui lòng nhập địa chỉ", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Chuẩn bị dữ liệu lưu vào Firestore
+    private void saveSupplier(String maID) {
         Map<String, Object> supplier = new HashMap<>();
-        supplier.put("name", name);
-        supplier.put("phone", phone);
-        supplier.put("email", email);
-        supplier.put("address", address);
-        supplier.put("createdAt", System.currentTimeMillis());
+        supplier.put("maID", maID);
+        supplier.put("tenNhaCungCap", etName.getText().toString().trim());
+        supplier.put("phone", etPhone.getText().toString().trim());
+        supplier.put("email", etEmail.getText().toString().trim());
+        supplier.put("address", etAddress.getText().toString().trim());
+        supplier.put("trangThai", 1);
+        supplier.put("createdAt", com.google.firebase.firestore.FieldValue.serverTimestamp());
 
-        // Lưu vào collection "suppliers"
-        db.collection("suppliers")
-                .add(supplier)
-                .addOnSuccessListener(documentReference -> {
-                    // Hiển thị thông báo thành công bằng Helper
-                    SuccessDialogHelper.showSuccessDialog(CreateSupplierActivity.this, "Thêm nhà cung cấp thành công!", () -> {
-                        // Khi nhấn nút 'X' (đã cài đặt trong Helper dismiss listener)
-                        setResult(RESULT_OK);
-                        finish();
+        // Lưu với ID tự tạo NCCxxxx
+        db.collection("NhaCungCap").document(maID).set(supplier)
+                .addOnSuccessListener(aVoid -> {
+                    SuccessDialogHelper.showSuccessDialog(this, "Thêm nhà cung cấp thành công!", () -> {
+                        new Handler().postDelayed(this::finish, 1500);
                     });
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Lỗi khi lưu: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    btnLuu.setEnabled(true);
+                    Toast.makeText(this, "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 }

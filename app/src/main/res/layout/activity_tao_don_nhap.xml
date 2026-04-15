@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="#f5f5f5"
     android:orientation="vertical"
-    tools:ignore="HardcodedText,Autofill,TouchTargetSizeCheck">
+    tools:ignore="HardcodedText,Autofill,TouchTargetSizeCheck,ButtonStyle">
 
     <!-- Header -->
     <LinearLayout
@@ -85,7 +85,7 @@
                             android:orientation="vertical"
                             android:padding="12dp">
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Nhà cung cấp" android:textColor="@color/black" android:textSize="12sp" android:textStyle="bold"/>
-                            <Spinner android:id="@+id/spnSupplier" android:layout_width="match_parent" android:layout_height="40dp" android:background="@drawable/bg_field_outline" android:layout_marginTop="4dp" android:contentDescription="Chọn nhà cung cấp"/>
+                            <Spinner android:id="@+id/spnSupplier" android:layout_width="match_parent" android:layout_height="48dp" android:minHeight="48dp" android:minWidth="48dp" android:background="@drawable/bg_field_outline" android:layout_marginTop="4dp" android:contentDescription="Chọn nhà cung cấp" tools:ignore="TouchTargetSizeCheck"/>
                         </LinearLayout>
 
                         <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#BCB2B2"/>
@@ -97,7 +97,7 @@
                             android:orientation="vertical"
                             android:padding="12dp">
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Ngày nhập" android:textColor="@color/black" android:textSize="12sp" android:textStyle="bold"/>
-                            <EditText android:id="@+id/etImportDate" android:layout_width="match_parent" android:layout_height="40dp" android:background="@drawable/bg_field_outline" android:focusable="true" android:clickable="true" android:paddingHorizontal="8dp" android:layout_marginTop="4dp" android:inputType="date" android:hint="Chọn ngày" android:textSize="13sp" />
+                            <EditText android:id="@+id/etImportDate" android:layout_width="match_parent" android:layout_height="48dp" android:minHeight="48dp" android:minWidth="48dp" android:background="@drawable/bg_field_outline" android:focusable="true" android:clickable="true" android:paddingHorizontal="8dp" android:layout_marginTop="4dp" android:inputType="date" android:hint="Chọn ngày" android:textColor="@color/black" android:textColorHint="#757575" android:textSize="13sp" tools:ignore="TouchTargetSizeCheck,TextContrastCheck" />
                         </LinearLayout>
                     </LinearLayout>
 
@@ -116,7 +116,7 @@
                             android:orientation="vertical"
                             android:padding="12dp">
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Trạng thái" android:textColor="@color/black" android:textSize="12sp" android:textStyle="bold"/>
-                            <Spinner android:id="@+id/spnStatus" android:layout_width="match_parent" android:layout_height="40dp" android:background="@drawable/bg_field_outline" android:layout_marginTop="4dp" android:contentDescription="Chọn trạng thái"/>
+                            <Spinner android:id="@+id/spnStatus" android:layout_width="match_parent" android:layout_height="48dp" android:minHeight="48dp" android:minWidth="48dp" android:background="@drawable/bg_field_outline" android:layout_marginTop="4dp" android:contentDescription="Chọn trạng thái" tools:ignore="TouchTargetSizeCheck"/>
                         </LinearLayout>
 
                         <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#BCB2B2"/>
@@ -128,7 +128,7 @@
                             android:orientation="vertical"
                             android:padding="12dp">
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Thanh toán" android:textColor="@color/black" android:textSize="12sp" android:textStyle="bold"/>
-                            <Spinner android:id="@+id/spnPayment" android:layout_width="match_parent" android:layout_height="40dp" android:background="@drawable/bg_field_outline" android:layout_marginTop="4dp" android:contentDescription="Chọn hình thức thanh toán"/>
+                            <Spinner android:id="@+id/spnPayment" android:layout_width="match_parent" android:layout_height="48dp" android:minHeight="48dp" android:minWidth="48dp" android:background="@drawable/bg_field_outline" android:layout_marginTop="4dp" android:contentDescription="Chọn hình thức thanh toán" tools:ignore="TouchTargetSizeCheck"/>
                         </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
@@ -188,7 +188,7 @@
         <Button
             android:id="@+id/btnAddBatch"
             android:layout_width="wrap_content"
-            android:layout_height="40dp"
+            android:layout_height="48dp"
             android:layout_marginBottom="8dp"
             android:text="Thêm lô, hạn sử dụng"
             android:textAllCaps="false"
@@ -241,11 +241,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="48dp"
                 android:layout_marginStart="8dp"
-                android:backgroundTint="#388E3C"
+                android:backgroundTint="#1B5E20"
                 android:text="Lưu"
                 android:textAllCaps="false"
                 android:textColor="@color/white"
-                app:cornerRadius="5dp" />
+                app:cornerRadius="5dp"
+                tools:ignore="TextContrastCheck" />
         </LinearLayout>
     </LinearLayout>
 

@@ -1,25 +1,23 @@
 package com.nhom5.pharma.feature.sanpham;
 
-import android.app.DatePickerDialog;
 import android.os.Bundle;
+import android.os.Handler;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.nhom5.pharma.R;
 import com.nhom5.pharma.util.SuccessDialogHelper;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 public class TaoSanPhamActivity extends AppCompatActivity {
 
-    private EditText etName, etCreatedTime, etCostPrice, etSellingPrice, etManufacturer, etCountry;
+    private EditText etName, etCostPrice, etSellingPrice, etManufacturer, etCountry;
     private Button btnSave, btnCancel;
-    private Calendar calendar = Calendar.getInstance();
     private FirebaseFirestore db;
 
     @Override
@@ -28,64 +26,72 @@ public class TaoSanPhamActivity extends AppCompatActivity {
         setContentView(R.layout.activity_tao_san_pham);
 
         db = FirebaseFirestore.getInstance();
+        initViews();
 
+        findViewById(R.id.ivBack).setOnClickListener(v -> finish());
+        btnCancel.setOnClickListener(v -> finish());
+        btnSave.setOnClickListener(v -> generateIDAndSave());
+    }
+
+    private void initViews() {
         etName = findViewById(R.id.etProductName);
-        etCreatedTime = findViewById(R.id.etCreatedTime);
         etCostPrice = findViewById(R.id.etCostPrice);
         etSellingPrice = findViewById(R.id.etSellingPrice);
         etManufacturer = findViewById(R.id.etManufacturer);
         etCountry = findViewById(R.id.etCountry);
         btnSave = findViewById(R.id.btnSave);
         btnCancel = findViewById(R.id.btnCancel);
-
-        findViewById(R.id.ivBack).setOnClickListener(v -> finish());
-        btnCancel.setOnClickListener(v -> finish());
-
-        etCreatedTime.setOnClickListener(v -> showDatePicker());
-
-        btnSave.setOnClickListener(v -> saveProduct());
     }
 
-    private void showDatePicker() {
-        DatePickerDialog datePickerDialog = new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
-            calendar.set(Calendar.YEAR, year);
-            calendar.set(Calendar.MONTH, month);
-            calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-            etCreatedTime.setText(sdf.format(calendar.getTime()));
-        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
-
-        datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis());
-        datePickerDialog.show();
-    }
-
-    private void saveProduct() {
+    private void generateIDAndSave() {
         String name = etName.getText().toString().trim();
-        String costPrice = etCostPrice.getText().toString().trim();
-        String sellingPrice = etSellingPrice.getText().toString().trim();
-
-        if (name.isEmpty() || costPrice.isEmpty() || sellingPrice.isEmpty()) {
-            Toast.makeText(this, "Vui lòng nhập đầy đủ thông tin", Toast.LENGTH_SHORT).show();
+        if (name.isEmpty()) {
+            Toast.makeText(this, "Vui lòng nhập tên sản phẩm", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        Map<String, Object> product = new HashMap<>();
-        product.put("tenSanPham", name);
-        product.put("giaVon", Double.parseDouble(costPrice));
-        product.put("giaBan", Double.parseDouble(sellingPrice));
-        product.put("hangSanXuat", etManufacturer.getText().toString());
-        product.put("nuocSanXuat", etCountry.getText().toString());
-        product.put("thoiGianTao", calendar.getTimeInMillis());
-        product.put("timestamp", System.currentTimeMillis());
-
+        btnSave.setEnabled(false);
         db.collection("products")
-                .add(product)
-                .addOnSuccessListener(documentReference -> {
-                    SuccessDialogHelper.showSuccessDialog(TaoSanPhamActivity.this, "Tạo sản phẩm thành công!", () -> {
-                        setResult(RESULT_OK);
-                        finish();
+                .orderBy("maID", Query.Direction.DESCENDING)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    String nextId = "SP00001";
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        String lastId = queryDocumentSnapshots.getDocuments().get(0).getString("maID");
+                        if (lastId != null && lastId.startsWith("SP")) {
+                            int num = Integer.parseInt(lastId.substring(2));
+                            nextId = String.format("SP%05d", num + 1);
+                        }
+                    }
+                    saveProduct(nextId);
+                })
+                .addOnFailureListener(e -> {
+                    btnSave.setEnabled(true);
+                    Toast.makeText(this, "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void saveProduct(String maID) {
+        Map<String, Object> product = new HashMap<>();
+        product.put("maID", maID);
+        product.put("tenSanPham", etName.getText().toString().trim());
+        product.put("giaVon", Double.parseDouble(etCostPrice.getText().toString().trim().isEmpty() ? "0" : etCostPrice.getText().toString()));
+        product.put("giaBan", Double.parseDouble(etSellingPrice.getText().toString().trim().isEmpty() ? "0" : etSellingPrice.getText().toString()));
+        product.put("hangSanXuat", etManufacturer.getText().toString().trim());
+        product.put("nuocSanXuat", etCountry.getText().toString().trim());
+        product.put("trangThai", 1);
+        product.put("createdAt", com.google.firebase.firestore.FieldValue.serverTimestamp());
+
+        db.collection("products").document(maID).set(product)
+                .addOnSuccessListener(aVoid -> {
+                    SuccessDialogHelper.showSuccessDialog(this, "Tạo sản phẩm thành công!", () -> {
+                        new Handler().postDelayed(this::finish, 1500);
                     });
                 })
-                .addOnFailureListener(e -> Toast.makeText(this, "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> {
+                    btnSave.setEnabled(true);
+                    Toast.makeText(this, "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 }

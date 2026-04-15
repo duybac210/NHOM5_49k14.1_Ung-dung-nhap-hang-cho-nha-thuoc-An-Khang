@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="#f5f5f5"
     android:orientation="vertical"
-    tools:ignore="HardcodedText,Autofill">
+    tools:ignore="HardcodedText,Autofill,TouchTargetSizeCheck,ButtonStyle">
 
     <!-- Header -->
     <LinearLayout
@@ -77,7 +77,7 @@
                             android:padding="12dp"
                             android:orientation="vertical">
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tên thuốc" android:textStyle="bold" android:textColor="#333333" android:textSize="13sp"/>
-                            <EditText android:id="@+id/etProductName" android:layout_width="match_parent" android:layout_height="40dp" android:background="@drawable/bg_field_outline" android:layout_marginTop="4dp" android:textSize="13sp" android:paddingHorizontal="8dp" tools:ignore="TouchTargetSizeCheck"/>
+                            <EditText android:id="@+id/etProductName" android:layout_width="match_parent" android:layout_height="48dp" android:minHeight="48dp" android:background="@drawable/bg_field_outline" android:layout_marginTop="4dp" android:hint="Nhập tên thuốc" android:inputType="textCapWords" android:textColor="@color/black" android:textColorHint="#757575" android:textSize="13sp" android:paddingHorizontal="8dp" tools:ignore="TouchTargetSizeCheck"/>
                         </LinearLayout>
 
                         <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#BCB2B2"/>
@@ -89,7 +89,7 @@
                             android:padding="12dp"
                             android:orientation="vertical">
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Thời gian tạo" android:textStyle="bold" android:textColor="#333333" android:textSize="13sp"/>
-                            <EditText android:id="@+id/etCreatedTime" android:layout_width="match_parent" android:layout_height="40dp" android:background="@drawable/bg_field_outline" android:layout_marginTop="4dp" android:textSize="13sp" android:paddingHorizontal="8dp" android:focusable="false" tools:ignore="TouchTargetSizeCheck"/>
+                            <EditText android:id="@+id/etCreatedTime" android:layout_width="match_parent" android:layout_height="48dp" android:minHeight="48dp" android:background="@drawable/bg_field_outline" android:layout_marginTop="4dp" android:hint="Tự động tạo" android:textColor="@color/black" android:textColorHint="#757575" android:textSize="13sp" android:paddingHorizontal="8dp" android:focusable="false" tools:ignore="TouchTargetSizeCheck"/>
                         </LinearLayout>
                     </LinearLayout>
 
@@ -108,7 +108,7 @@
                             android:padding="12dp"
                             android:orientation="vertical">
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Giá vốn" android:textStyle="bold" android:textColor="#333333" android:textSize="13sp"/>
-                            <EditText android:id="@+id/etCostPrice" android:layout_width="match_parent" android:layout_height="40dp" android:background="@drawable/bg_field_outline" android:layout_marginTop="4dp" android:textSize="13sp" android:paddingHorizontal="8dp" android:inputType="numberDecimal" tools:ignore="TouchTargetSizeCheck"/>
+                            <EditText android:id="@+id/etCostPrice" android:layout_width="match_parent" android:layout_height="48dp" android:minHeight="48dp" android:background="@drawable/bg_field_outline" android:layout_marginTop="4dp" android:hint="0" android:textColor="@color/black" android:textColorHint="#757575" android:textSize="13sp" android:paddingHorizontal="8dp" android:inputType="numberDecimal" tools:ignore="TouchTargetSizeCheck"/>
                         </LinearLayout>
 
                         <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#BCB2B2"/>
@@ -120,7 +120,7 @@
                             android:padding="12dp"
                             android:orientation="vertical">
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Giá bán" android:textStyle="bold" android:textColor="#333333" android:textSize="13sp"/>
-                            <EditText android:id="@+id/etSellingPrice" android:layout_width="match_parent" android:layout_height="40dp" android:background="@drawable/bg_field_outline" android:layout_marginTop="4dp" android:textSize="13sp" android:paddingHorizontal="8dp" android:inputType="numberDecimal" tools:ignore="TouchTargetSizeCheck"/>
+                            <EditText android:id="@+id/etSellingPrice" android:layout_width="match_parent" android:layout_height="48dp" android:minHeight="48dp" android:background="@drawable/bg_field_outline" android:layout_marginTop="4dp" android:hint="0" android:textColor="@color/black" android:textColorHint="#757575" android:textSize="13sp" android:paddingHorizontal="8dp" android:inputType="numberDecimal" tools:ignore="TouchTargetSizeCheck"/>
                         </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
@@ -157,7 +157,7 @@
                         android:padding="16dp"
                         android:orientation="vertical">
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Hãng sản xuất" android:textStyle="bold" android:textColor="#333333" android:textSize="13sp"/>
-                        <EditText android:id="@+id/etManufacturer" android:layout_width="match_parent" android:layout_height="40dp" android:background="@drawable/bg_field_outline" android:hint="Nhập hãng sản xuất" android:layout_marginTop="8dp" android:textSize="13sp" android:paddingHorizontal="8dp" tools:ignore="TouchTargetSizeCheck"/>
+                        <EditText android:id="@+id/etManufacturer" android:layout_width="match_parent" android:layout_height="48dp" android:minHeight="48dp" android:background="@drawable/bg_field_outline" android:hint="Nhập hãng sản xuất" android:layout_marginTop="8dp" android:inputType="textCapWords" android:textColor="@color/black" android:textColorHint="#757575" android:textSize="13sp" android:paddingHorizontal="8dp" tools:ignore="TouchTargetSizeCheck"/>
                     </LinearLayout>
 
                     <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#BCB2B2"/>
@@ -169,7 +169,7 @@
                         android:padding="16dp"
                         android:orientation="vertical">
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Nước sản xuất" android:textStyle="bold" android:textColor="#333333" android:textSize="13sp"/>
-                        <EditText android:id="@+id/etCountry" android:layout_width="match_parent" android:layout_height="40dp" android:background="@drawable/bg_field_outline" android:hint="Nhập nước sản xuất" android:layout_marginTop="8dp" android:textSize="13sp" android:paddingHorizontal="8dp" tools:ignore="TouchTargetSizeCheck"/>
+                        <EditText android:id="@+id/etCountry" android:layout_width="match_parent" android:layout_height="48dp" android:minHeight="48dp" android:background="@drawable/bg_field_outline" android:hint="Nhập nước sản xuất" android:layout_marginTop="8dp" android:inputType="textCapWords" android:textColor="@color/black" android:textColorHint="#757575" android:textSize="13sp" android:paddingHorizontal="8dp" tools:ignore="TouchTargetSizeCheck"/>
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

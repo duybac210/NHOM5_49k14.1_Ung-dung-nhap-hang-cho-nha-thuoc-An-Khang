@@ -72,7 +72,12 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.nav_tab_suppliers).setOnClickListener(v -> selectTab(TAB_SUPPLIERS));
         findViewById(R.id.nav_tab_manage).setOnClickListener(v -> selectTab(TAB_MANAGE));
 
-        selectTab(TAB_ORDERS);
+        // Kiểm tra nếu được gọi để chọn sản phẩm
+        if (getIntent().getBooleanExtra("SELECT_MODE", false)) {
+            selectTab(TAB_PRODUCTS);
+        } else {
+            selectTab(TAB_ORDERS);
+        }
     }
 
     private void selectTab(int index) {
