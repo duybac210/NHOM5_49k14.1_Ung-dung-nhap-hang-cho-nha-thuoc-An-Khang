@@ -1,5 +1,6 @@
 package com.nhom5.pharma.feature.nhaphang;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -15,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.Query;
 import com.nhom5.pharma.R;
 
@@ -22,6 +24,7 @@ public class NhapHangFragment extends Fragment {
 
     private RecyclerView recyclerViewNhapHang;
     private EditText searchEditText;
+    private FloatingActionButton fabAdd;
     private NhapHangAdapter adapter;
     private final NhapHangRepository repository = NhapHangRepository.getInstance();
 
@@ -32,9 +35,18 @@ public class NhapHangFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_nhap_hang, container, false);
         recyclerViewNhapHang = view.findViewById(R.id.recyclerViewNhapHang);
         searchEditText = view.findViewById(R.id.searchEditText);
+        fabAdd = view.findViewById(R.id.fabAdd);
 
         setupRecyclerView();
         setupSearchFunctionality();
+
+        if (fabAdd != null) {
+            fabAdd.setOnClickListener(v -> {
+                Intent intent = new Intent(getActivity(), TaoDonNhapActivity.class);
+                startActivity(intent);
+            });
+        }
+
         return view;
     }
 
@@ -65,7 +77,6 @@ public class NhapHangFragment extends Fragment {
             searchEditText.addTextChangedListener(new TextWatcher() {
                 @Override
                 public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    // Gọi hàm tìm kiếm theo Mã đơn (Document ID)
                     Query query = repository.searchByMaDon(s.toString().toUpperCase());
 
                     FirestoreRecyclerOptions<NhapHang> options = new FirestoreRecyclerOptions.Builder<NhapHang>()
