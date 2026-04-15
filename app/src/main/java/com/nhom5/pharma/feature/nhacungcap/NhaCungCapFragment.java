@@ -38,7 +38,8 @@ public class NhaCungCapFragment extends Fragment {
         setupSearch();
 
         view.findViewById(R.id.btnAddNCC).setOnClickListener(v -> {
-            // Logic thêm NCC mới nếu cần
+            Intent intent = new Intent(getContext(), CreateSupplierActivity.class);
+            startActivity(intent);
         });
 
         return view;

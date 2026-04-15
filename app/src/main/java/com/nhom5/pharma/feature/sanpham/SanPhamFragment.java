@@ -1,6 +1,8 @@
 package com.nhom5.pharma.feature.sanpham;
 
 import android.app.AlertDialog;
+import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -23,22 +25,28 @@ import com.nhom5.pharma.R;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class SanPhamFragment extends Fragment implements ProductAdapter.OnProductClickListener {
 
     private ProductViewModel viewModel;
     private ProductAdapter adapter;
     private List<Product> fullList = new ArrayList<>();
+    private boolean isSelectMode = false;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_san_pham, container, false);
+
+        if (getActivity() != null && getActivity().getIntent() != null) {
+            isSelectMode = getActivity().getIntent().getBooleanExtra("SELECT_MODE", false);
+        }
         
         RecyclerView rvProducts = view.findViewById(R.id.rv_products);
         rvProducts.setLayoutManager(new LinearLayoutManager(getContext()));
         
-        adapter = new ProductAdapter(this);
+        adapter = new ProductAdapter(this, isSelectMode);
         rvProducts.setAdapter(adapter);
 
         viewModel = new ViewModelProvider(this).get(ProductViewModel.class);
@@ -52,7 +60,10 @@ public class SanPhamFragment extends Fragment implements ProductAdapter.OnProduc
         // Nút thêm sản phẩm
         View btnAdd = view.findViewById(R.id.iv_add);
         if (btnAdd != null) {
-            btnAdd.setOnClickListener(v -> showEditDialog(null));
+            btnAdd.setOnClickListener(v -> {
+                Intent intent = new Intent(getContext(), TaoSanPhamActivity.class);
+                startActivity(intent);
+            });
         }
 
         EditText etSearch = view.findViewById(R.id.et_search);
@@ -67,6 +78,20 @@ public class SanPhamFragment extends Fragment implements ProductAdapter.OnProduc
         }
 
         return view;
+    }
+
+    @Override
+    public void onItemClick(Product product) {
+        if (!isSelectMode || getActivity() == null) {
+            return;
+        }
+
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra("product_id", product.getId());
+        resultIntent.putExtra("product_name", product.getTenSP());
+        resultIntent.putExtra("product_price", product.getGiavon());
+        getActivity().setResult(Activity.RESULT_OK, resultIntent);
+        getActivity().finish();
     }
 
     private void filterProducts(String query) {
@@ -124,7 +149,7 @@ public class SanPhamFragment extends Fragment implements ProductAdapter.OnProduc
             etMaHang.setText(product.getId());
             etMaVach.setText(product.getMaVach());
             etTenHang.setText(product.getTenSP());
-            etGiaVon.setText(String.format("%.0f", product.getGiavon()));
+            etGiaVon.setText(String.format(Locale.getDefault(), "%.0f", product.getGiavon()));
             etHangSX.setText(product.getHangSX());
             etNuocSX.setText(product.getNuocSX());
         } else {
