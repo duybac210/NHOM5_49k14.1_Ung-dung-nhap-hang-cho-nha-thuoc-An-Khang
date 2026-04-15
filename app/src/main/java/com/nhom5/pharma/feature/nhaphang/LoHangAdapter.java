@@ -176,7 +176,7 @@ public class LoHangAdapter extends FirestoreRecyclerAdapter<LoHang, LoHangAdapte
         if (date == null) {
             return "-";
         }
-        return new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(date);
+        return new SimpleDateFormat("dd/MM/yy", Locale.getDefault()).format(date);
     }
 
     private static long calcRemainingDays(Date ngayNhap, Date hanSuDung) {
