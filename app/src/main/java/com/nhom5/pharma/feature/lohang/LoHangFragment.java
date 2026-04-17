@@ -248,6 +248,10 @@ public class LoHangFragment extends Fragment {
                 return R.id.rbExpired;
             case LoHangFilterType.LOW_STOCK:
                 return R.id.rbLowStock;
+            case LoHangFilterType.EXPIRY_ASC:
+                return R.id.rbExpiryAsc;
+            case LoHangFilterType.EXPIRY_DESC:
+                return R.id.rbExpiryDesc;
             case LoHangFilterType.ALL:
             default:
                 return R.id.rbAll;
@@ -263,6 +267,12 @@ public class LoHangFragment extends Fragment {
         }
         if (radioId == R.id.rbLowStock) {
             return LoHangFilterType.LOW_STOCK;
+        }
+        if (radioId == R.id.rbExpiryAsc) {
+            return LoHangFilterType.EXPIRY_ASC;
+        }
+        if (radioId == R.id.rbExpiryDesc) {
+            return LoHangFilterType.EXPIRY_DESC;
         }
         return LoHangFilterType.ALL;
     }

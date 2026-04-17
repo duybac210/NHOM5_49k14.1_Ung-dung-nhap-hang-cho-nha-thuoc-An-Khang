@@ -75,6 +75,12 @@ public class NhapHangRepository {
                 return getAllLoHang();
             case LoHangFilterType.LOW_STOCK:
                 return getAllLoHang();
+            case LoHangFilterType.EXPIRY_ASC:
+                return db.collection("LoHang")
+                        .orderBy("hanSuDung", Query.Direction.ASCENDING);
+            case LoHangFilterType.EXPIRY_DESC:
+                return db.collection("LoHang")
+                        .orderBy("hanSuDung", Query.Direction.DESCENDING);
             case LoHangFilterType.ALL:
             default:
                 return getAllLoHang();
@@ -120,6 +126,33 @@ public class NhapHangRepository {
         return db.collection("LoHang")
                 .document(soLo.trim())
                 .set(loHang.toFirestoreMap(), SetOptions.merge());
+    }
+
+    public Task<Void> updateLoHangNgaySanXuat(String soLo, Date ngaySanXuat) {
+        if (soLo == null || soLo.trim().isEmpty()) {
+            throw new IllegalArgumentException("soLo khong duoc rong");
+        }
+        if (ngaySanXuat == null) {
+            throw new IllegalArgumentException("ngaySanXuat khong duoc null");
+        }
+
+        Map<String, Object> update = new HashMap<>();
+        update.put("ngaySanXuat", ngaySanXuat);
+        return db.collection("LoHang")
+                .document(soLo.trim())
+                .set(update, SetOptions.merge());
+    }
+
+    public Task<Void> updateLoHangDonGiaNhap(String soLo, double donGiaNhap) {
+        if (soLo == null || soLo.trim().isEmpty()) {
+            throw new IllegalArgumentException("soLo khong duoc rong");
+        }
+
+        Map<String, Object> update = new HashMap<>();
+        update.put("donGiaNhap", donGiaNhap);
+        return db.collection("LoHang")
+                .document(soLo.trim())
+                .set(update, SetOptions.merge());
     }
 
     public Task<Void> createSampleNhapHangWithLoHang() {

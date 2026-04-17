@@ -16,6 +16,7 @@ public class LoHang {
     private double donGiaNhap;
     private Date ngayNhap;
     private Date hanSuDung;
+    private Date ngaySanXuat;
 
     @ServerTimestamp
     private Date ngayTao;
@@ -79,6 +80,14 @@ public class LoHang {
         this.hanSuDung = hanSuDung;
     }
 
+    public Date getNgaySanXuat() {
+        return ngaySanXuat;
+    }
+
+    public void setNgaySanXuat(Date ngaySanXuat) {
+        this.ngaySanXuat = ngaySanXuat;
+    }
+
     public Date getNgayTao() {
         return ngayTao;
     }
@@ -105,6 +114,9 @@ public class LoHang {
         }
         if (hanSuDung != null) {
             data.put("hanSuDung", hanSuDung);
+        }
+        if (ngaySanXuat != null) {
+            data.put("ngaySanXuat", ngaySanXuat);
         }
         if (ngayTao != null) {
             data.put("ngayTao", ngayTao);

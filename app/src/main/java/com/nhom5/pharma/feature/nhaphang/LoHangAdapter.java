@@ -265,7 +265,7 @@ public class LoHangAdapter extends FirestoreRecyclerAdapter<LoHang, LoHangAdapte
             super(itemView);
             tvSoLo = itemView.findViewById(R.id.tvSoLo);
             tvHanSuDung = itemView.findViewById(R.id.tvHanSuDung);
-            tvMaHang = itemView.findViewById(R.id.tvMaHang);
+            tvMaHang = itemView.findViewById(R.id.tvMaSP);
             tvNgayNhap = itemView.findViewById(R.id.tvNgayNhap);
             tvSoLuong = itemView.findViewById(R.id.tvSoLuong);
         }

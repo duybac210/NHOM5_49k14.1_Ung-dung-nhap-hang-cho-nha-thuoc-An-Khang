@@ -166,33 +166,37 @@ public class ChiTietNhapHangActivity extends AppCompatActivity {
         isLoHangLoaded = false;
         repository.getLoHangByNhapHangId(id).addOnSuccessListener(snapshot -> {
             for (DocumentSnapshot doc : snapshot) {
+                String soLoDoc = doc.getId();
+                String maSpValue = firstNonEmpty(doc, "maSP", "MaSP", "maHang", "MaHang");
+                double soLuongValue = firstNumber(doc, "soLuong", "SoLuong");
+                double donGiaValue = firstNumber(doc, "donGiaNhap", "DonGiaNhap", "giaNhap", "GiaNhap", "donGia", "DonGia");
+
                 LoHang loHang = new LoHang();
-                loHang.setSoLo(doc.getId());
+                loHang.setSoLo(soLoDoc);
                 loHang.setMaNhapHang(firstNonEmpty(doc, "maNhapHang", "MaNhapHang"));
-                loHang.setMaSP(firstNonEmpty(doc, "maSP", "MaSP"));
-                loHang.setSoLuong(firstNumber(doc, "soLuong", "SoLuong"));
-                loHang.setDonGiaNhap(firstNumber(doc, "donGiaNhap", "DonGiaNhap", "giaNhap", "GiaNhap"));
+                loHang.setMaSP(maSpValue);
+                loHang.setSoLuong(soLuongValue);
+                loHang.setDonGiaNhap(donGiaValue);
                 loHang.setNgayNhap(firstDate(doc, "ngayNhap", "NgayNhap", "ngayTao", "createdAt"));
                 loHang.setHanSuDung(firstDate(doc, "hanSuDung", "HanSuDung", "hansudung"));
+                loHang.setNgaySanXuat(firstDate(doc, "ngaySanXuat", "NgaySanXuat", "ngaySX", "NgaySX", "nsx", "NSX"));
                 loHang.setNgayTao(firstDate(doc, "ngayTao", "createdAt", "NgayTao"));
                 currentLoHangs.add(loHang);
 
+                syncLegacyLoHangFields(doc, loHang);
+
                 View itemView = LayoutInflater.from(this).inflate(R.layout.item_chi_tiet_lo_hang, llChiTiet, false);
-                ((TextView)itemView.findViewById(R.id.tvSoLo)).setText(doc.getId());
-                
-                Double sl = doc.getDouble("soLuong");
-                Double dg = doc.getDouble("donGiaNhap");
-                
-                double soLuong = sl != null ? sl : 0;
-                double donGia = dg != null ? dg : 0;
+                ((TextView)itemView.findViewById(R.id.tvSoLo)).setText(soLoDoc);
+
+                double soLuong = soLuongValue;
+                double donGia = donGiaValue;
                 
                 ((TextView)itemView.findViewById(R.id.tvSoLuong)).setText(String.format(Locale.getDefault(), "%,.0f", soLuong));
                 ((TextView)itemView.findViewById(R.id.tvDonGia)).setText(String.format(Locale.getDefault(), "%,.0fđ", donGia));
                 ((TextView)itemView.findViewById(R.id.tvThanhTien)).setText(String.format(Locale.getDefault(), "%,.0fđ", soLuong * donGia));
                 
-                String maSP = doc.getString("maSP");
-                if (maSP != null) {
-                    repository.getProductById(maSP).addOnSuccessListener(spDoc -> {
+                if (maSpValue != null) {
+                    repository.getProductById(maSpValue).addOnSuccessListener(spDoc -> {
                         if (spDoc.exists()) {
                             String tenSP = spDoc.getString("tenSP");
                             if (tenSP == null) tenSP = spDoc.getString("TenSP");
@@ -209,6 +213,22 @@ public class ChiTietNhapHangActivity extends AppCompatActivity {
             findViewById(R.id.btnLuu).setEnabled(false);
             Toast.makeText(this, "Khong tai duoc lo hang: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         });
+    }
+
+    private void syncLegacyLoHangFields(DocumentSnapshot doc, LoHang loHang) {
+        String soLo = loHang.getSoLo();
+        if (soLo == null || soLo.trim().isEmpty()) {
+            return;
+        }
+
+        boolean needsCanonicalSync = !doc.contains("maSP")
+                || !doc.contains("donGiaNhap")
+                || !doc.contains("ngaySanXuat")
+                || !doc.contains("soLo");
+
+        if (needsCanonicalSync) {
+            repository.upsertLoHang(soLo, loHang);
+        }
     }
 
     private void syncLoHangToFirebase() {
@@ -245,6 +265,12 @@ public class ChiTietNhapHangActivity extends AppCompatActivity {
             Object raw = snapshot.get(key);
             if (raw instanceof Number) {
                 return ((Number) raw).doubleValue();
+            }
+            if (raw instanceof String) {
+                try {
+                    return Double.parseDouble(((String) raw).trim());
+                } catch (NumberFormatException ignored) {
+                }
             }
         }
         return 0d;
