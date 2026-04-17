@@ -16,6 +16,9 @@ import androidx.appcompat.widget.Toolbar;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.nhom5.pharma.R;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
@@ -23,6 +26,8 @@ public class ChiTietNhapHangActivity extends AppCompatActivity {
 
     private TextView tvOrderCodeTitle, tvTrangThaiHeader, tvNguoiNhap, tvNgayNhapMeta, tvTenNhaCungCap;
     private LinearLayout llChiTiet;
+    private final List<LoHang> currentLoHangs = new ArrayList<>();
+    private boolean isLoHangLoaded = false;
     private String nhapHangId;
     private NhapHangRepository repository;
 
@@ -56,7 +61,8 @@ public class ChiTietNhapHangActivity extends AppCompatActivity {
         llChiTiet = findViewById(R.id.llChiTiet);
 
         findViewById(R.id.btnXoa).setOnClickListener(v -> showDeleteConfirmationDialog());
-        findViewById(R.id.btnLuu).setOnClickListener(v -> finish());
+        findViewById(R.id.btnLuu).setEnabled(false);
+        findViewById(R.id.btnLuu).setOnClickListener(v -> syncLoHangToFirebase());
     }
 
     private void showDeleteConfirmationDialog() {
@@ -156,8 +162,21 @@ public class ChiTietNhapHangActivity extends AppCompatActivity {
 
     private void fetchLoHangList(String id) {
         llChiTiet.removeAllViews();
+        currentLoHangs.clear();
+        isLoHangLoaded = false;
         repository.getLoHangByNhapHangId(id).addOnSuccessListener(snapshot -> {
             for (DocumentSnapshot doc : snapshot) {
+                LoHang loHang = new LoHang();
+                loHang.setSoLo(doc.getId());
+                loHang.setMaNhapHang(firstNonEmpty(doc, "maNhapHang", "MaNhapHang"));
+                loHang.setMaSP(firstNonEmpty(doc, "maSP", "MaSP"));
+                loHang.setSoLuong(firstNumber(doc, "soLuong", "SoLuong"));
+                loHang.setDonGiaNhap(firstNumber(doc, "donGiaNhap", "DonGiaNhap", "giaNhap", "GiaNhap"));
+                loHang.setNgayNhap(firstDate(doc, "ngayNhap", "NgayNhap", "ngayTao", "createdAt"));
+                loHang.setHanSuDung(firstDate(doc, "hanSuDung", "HanSuDung", "hansudung"));
+                loHang.setNgayTao(firstDate(doc, "ngayTao", "createdAt", "NgayTao"));
+                currentLoHangs.add(loHang);
+
                 View itemView = LayoutInflater.from(this).inflate(R.layout.item_chi_tiet_lo_hang, llChiTiet, false);
                 ((TextView)itemView.findViewById(R.id.tvSoLo)).setText(doc.getId());
                 
@@ -183,6 +202,64 @@ public class ChiTietNhapHangActivity extends AppCompatActivity {
                 }
                 llChiTiet.addView(itemView);
             }
+            isLoHangLoaded = true;
+            findViewById(R.id.btnLuu).setEnabled(true);
+        }).addOnFailureListener(e -> {
+            isLoHangLoaded = false;
+            findViewById(R.id.btnLuu).setEnabled(false);
+            Toast.makeText(this, "Khong tai duoc lo hang: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         });
+    }
+
+    private void syncLoHangToFirebase() {
+        if (nhapHangId == null) {
+            return;
+        }
+
+        if (!isLoHangLoaded) {
+            Toast.makeText(this, "Du lieu lo hang chua tai xong, vui long thu lai", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        repository.replaceLoHangByNhapHangId(nhapHangId, currentLoHangs)
+                .addOnSuccessListener(unused -> Toast.makeText(this, "Đã đồng bộ lô hàng lên Firebase", Toast.LENGTH_SHORT).show())
+                .addOnFailureListener(e -> Toast.makeText(this, "Đồng bộ thất bại: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+    }
+
+    private static String firstNonEmpty(DocumentSnapshot snapshot, String... keys) {
+        for (String key : keys) {
+            String value = snapshot.getString(key);
+            if (value != null && !value.trim().isEmpty()) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    private static double firstNumber(DocumentSnapshot snapshot, String... keys) {
+        for (String key : keys) {
+            Double value = snapshot.getDouble(key);
+            if (value != null) {
+                return value;
+            }
+            Object raw = snapshot.get(key);
+            if (raw instanceof Number) {
+                return ((Number) raw).doubleValue();
+            }
+        }
+        return 0d;
+    }
+
+    private static Date firstDate(DocumentSnapshot snapshot, String... keys) {
+        for (String key : keys) {
+            Object raw = snapshot.get(key);
+            if (raw instanceof Date) {
+                return (Date) raw;
+            }
+            if (raw instanceof com.google.firebase.Timestamp) {
+                return ((com.google.firebase.Timestamp) raw).toDate();
+            }
+        }
+        return null;
     }
 }

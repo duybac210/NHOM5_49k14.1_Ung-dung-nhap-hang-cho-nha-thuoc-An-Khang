@@ -1,13 +1,22 @@
 package com.nhom5.pharma.feature.nhaphang;
 
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldPath;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.WriteBatch;
 import com.nhom5.pharma.feature.lohang.LoHangFilterType;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class NhapHangRepository {
     private static NhapHangRepository instance;
@@ -98,6 +107,91 @@ public class NhapHangRepository {
     public Task<DocumentSnapshot> getProductById(String maSP) {
         return db.collection("SanPham").document(maSP).get();
     }
+
+    public Task<Void> upsertLoHang(String soLo, LoHang loHang) {
+        if (soLo == null || soLo.trim().isEmpty()) {
+            throw new IllegalArgumentException("soLo khong duoc rong");
+        }
+        if (loHang == null) {
+            throw new IllegalArgumentException("loHang khong duoc null");
+        }
+
+        loHang.setSoLo(soLo.trim());
+        return db.collection("LoHang")
+                .document(soLo.trim())
+                .set(loHang.toFirestoreMap(), SetOptions.merge());
+    }
+
+    public Task<Void> createSampleNhapHangWithLoHang() {
+        WriteBatch batch = db.batch();
+
+        DocumentReference nhapHangRef = db.collection("NhapHang").document();
+        String nhapHangId = nhapHangRef.getId();
+
+        Map<String, Object> nhapHangData = new HashMap<>();
+        nhapHangData.put("maNCC", "NCC_DEMO");
+        nhapHangData.put("maNguoiNhap", "USER_DEMO");
+        nhapHangData.put("trangThai", true);
+        nhapHangData.put("tongTien", 250000d);
+        nhapHangData.put("ghiChu", "Tao tu app Android");
+        nhapHangData.put("ngayTao", FieldValue.serverTimestamp());
+        nhapHangData.put("ngayCapNhat", FieldValue.serverTimestamp());
+        batch.set(nhapHangRef, nhapHangData, SetOptions.merge());
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DAY_OF_YEAR, 180);
+        Date hanSuDung = calendar.getTime();
+
+        String soLo = "LO" + System.currentTimeMillis();
+        Map<String, Object> loHangData = new HashMap<>();
+        loHangData.put("soLo", soLo);
+        loHangData.put("maNhapHang", nhapHangId);
+        loHangData.put("maSP", "SP_DEMO");
+        loHangData.put("soLuong", 100d);
+        loHangData.put("donGiaNhap", 2500d);
+        loHangData.put("ngayNhap", FieldValue.serverTimestamp());
+        loHangData.put("hanSuDung", hanSuDung);
+        loHangData.put("ngayTao", FieldValue.serverTimestamp());
+        batch.set(db.collection("LoHang").document(soLo), loHangData, SetOptions.merge());
+
+        return batch.commit();
+    }
+
+    public Task<Void> replaceLoHangByNhapHangId(String nhapHangId, List<LoHang> loHangs) {
+        if (nhapHangId == null || nhapHangId.trim().isEmpty()) {
+            throw new IllegalArgumentException("nhapHangId khong duoc rong");
+        }
+
+        WriteBatch batch = db.batch();
+        return getLoHangByNhapHangId(nhapHangId).continueWithTask(task -> {
+            if (!task.isSuccessful()) {
+                throw task.getException() != null
+                        ? task.getException()
+                        : new IllegalStateException("Khong the tai danh sach lo hang hien tai");
+            }
+
+            for (DocumentSnapshot doc : task.getResult()) {
+                batch.delete(doc.getReference());
+            }
+
+            if (loHangs != null) {
+                for (LoHang loHang : loHangs) {
+                    if (loHang == null) {
+                        continue;
+                    }
+                    loHang.setMaNhapHang(nhapHangId);
+                    String soLo = loHang.getSoLo();
+                    if (soLo == null || soLo.trim().isEmpty()) {
+                        continue;
+                    }
+                    batch.set(db.collection("LoHang").document(soLo.trim()), loHang.toFirestoreMap(), SetOptions.merge());
+                }
+            }
+
+            return batch.commit();
+        });
+    }
+
 
     public Task<Void> deleteNhapHang(String nhapHangId) {
         WriteBatch batch = db.batch();

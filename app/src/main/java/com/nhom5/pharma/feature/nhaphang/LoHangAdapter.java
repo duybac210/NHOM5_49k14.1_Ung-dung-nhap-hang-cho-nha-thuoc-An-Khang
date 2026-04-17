@@ -53,12 +53,12 @@ public class LoHangAdapter extends FirestoreRecyclerAdapter<LoHang, LoHangAdapte
     protected void onBindViewHolder(@NonNull LoHangViewHolder holder, int position, @NonNull LoHang model) {
         DocumentSnapshot snapshot = getSnapshots().getSnapshot(position);
 
-        String soLo = snapshot.getId();
-        Date hanSuDung = firstDate(snapshot, "hanSuDung", "HanSuDung", "hansudung");
-        String maHang = firstNonEmpty(snapshot, "maHang", "MaHang", "maSP", "MaSP", "maNhapHang", "MaNhapHang");
-        Date ngayNhap = firstDate(snapshot, "ngayNhap", "NgayNhap", "ngayTao", "createdAt");
+        String soLo = firstNonEmpty(snapshot, snapshot.getId(), "soLo", "SoLo", "maLo", "MaLo");
+        Date hanSuDung = firstDate(snapshot, model.getHanSuDung(), "hanSuDung", "HanSuDung", "hansudung");
+        String maHang = firstNonEmpty(snapshot, model.getMaSP(), "maHang", "MaHang", "maSP", "MaSP", "maNhapHang", "MaNhapHang");
+        Date ngayNhap = firstDate(snapshot, model.getNgayNhap(), "ngayNhap", "NgayNhap", "ngayTao", "createdAt");
         double soLuong = firstNumber(snapshot, model.getSoLuong(), "soLuong", "SoLuong");
-        long soNgayConLai = calcRemainingDays(ngayNhap, hanSuDung);
+        long soNgayConLai = calcDaysUntilExpiry(hanSuDung);
         boolean shouldDisplay = matchesCurrentFilter(soNgayConLai, soLuong);
 
         RecyclerView.LayoutParams layoutParams = (RecyclerView.LayoutParams) holder.itemView.getLayoutParams();
@@ -86,7 +86,6 @@ public class LoHangAdapter extends FirestoreRecyclerAdapter<LoHang, LoHangAdapte
         holder.tvMaHang.setText(defaultText(maHang));
         holder.tvNgayNhap.setText(formatDate(ngayNhap));
         holder.tvSoLuong.setText(String.format(Locale.getDefault(), "%,.0f", soLuong));
-        holder.tvSoNgayConLai.setText(soNgayConLai == Long.MIN_VALUE ? "-" : String.valueOf(soNgayConLai));
 
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), ChiTietLoHangActivity.class);
@@ -108,14 +107,14 @@ public class LoHangAdapter extends FirestoreRecyclerAdapter<LoHang, LoHangAdapte
         return new LoHangViewHolder(view);
     }
 
-    private static String firstNonEmpty(DocumentSnapshot snapshot, String... keys) {
+    private static String firstNonEmpty(DocumentSnapshot snapshot, String fallback, String... keys) {
         for (String key : keys) {
             String value = snapshot.getString(key);
             if (!TextUtils.isEmpty(value)) {
                 return value;
             }
         }
-        return null;
+        return TextUtils.isEmpty(fallback) ? null : fallback;
     }
 
     private static double firstNumber(DocumentSnapshot snapshot, double fallback, String... keys) {
@@ -132,14 +131,14 @@ public class LoHangAdapter extends FirestoreRecyclerAdapter<LoHang, LoHangAdapte
         return fallback;
     }
 
-    private static Date firstDate(DocumentSnapshot snapshot, String... keys) {
+    private static Date firstDate(DocumentSnapshot snapshot, Date fallback, String... keys) {
         for (String key : keys) {
             Date value = toDate(snapshot.get(key));
             if (value != null) {
                 return value;
             }
         }
-        return null;
+        return fallback;
     }
 
     private static Date toDate(Object raw) {
@@ -161,7 +160,22 @@ public class LoHangAdapter extends FirestoreRecyclerAdapter<LoHang, LoHangAdapte
             if (TextUtils.isEmpty(value)) {
                 return null;
             }
-            String[] patterns = new String[]{"dd/MM/yyyy", "yyyy-MM-dd", "dd-MM-yyyy"};
+            if (TextUtils.isDigitsOnly(value)) {
+                try {
+                    return new Date(Long.parseLong(value));
+                } catch (NumberFormatException ignored) {
+                }
+            }
+
+            String[] patterns = new String[]{
+                    "dd/MM/yyyy",
+                    "dd/MM/yy",
+                    "yyyy-MM-dd",
+                    "dd-MM-yyyy",
+                    "yyyy/MM/dd",
+                    "yyyy-MM-dd'T'HH:mm:ss",
+                    "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+            };
             for (String pattern : patterns) {
                 try {
                     return new SimpleDateFormat(pattern, Locale.getDefault()).parse(value);
@@ -179,12 +193,11 @@ public class LoHangAdapter extends FirestoreRecyclerAdapter<LoHang, LoHangAdapte
         return new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(date);
     }
 
-    private static long calcRemainingDays(Date ngayNhap, Date hanSuDung) {
-        if (ngayNhap == null || hanSuDung == null) {
+    private static long calcDaysUntilExpiry(Date hanSuDung) {
+        if (hanSuDung == null) {
             return Long.MIN_VALUE;
         }
-        // So ngay con lai theo du lieu Firebase: han su dung - ngay nhap.
-        long diffMillis = stripTime(hanSuDung).getTime() - stripTime(ngayNhap).getTime();
+        long diffMillis = stripTime(hanSuDung).getTime() - stripTime(new Date()).getTime();
         return diffMillis / (24L * 60L * 60L * 1000L);
     }
 
@@ -209,7 +222,7 @@ public class LoHangAdapter extends FirestoreRecyclerAdapter<LoHang, LoHangAdapte
                 return soNgayConLai > 0 && soNgayConLai <= 15;
             case LoHangFilterType.EXPIRED:
                 // Theo yeu cau: date = 0 la het han.
-                return soNgayConLai == 0;
+                return soNgayConLai <= 0;
             case LoHangFilterType.LOW_STOCK:
                 return soLuong <= 10;
             case LoHangFilterType.ALL:
@@ -223,10 +236,10 @@ public class LoHangAdapter extends FirestoreRecyclerAdapter<LoHang, LoHangAdapte
         for (int i = 0; i < getItemCount(); i++) {
             DocumentSnapshot snapshot = getSnapshots().getSnapshot(i);
             LoHang model = getItem(i);
-            Date hanSuDung = firstDate(snapshot, "hanSuDung", "HanSuDung", "hansudung");
-            Date ngayNhap = firstDate(snapshot, "ngayNhap", "NgayNhap", "ngayTao", "createdAt");
+            Date hanSuDung = firstDate(snapshot, model.getHanSuDung(), "hanSuDung", "HanSuDung", "hansudung");
+            Date ngayNhap = firstDate(snapshot, model.getNgayNhap(), "ngayNhap", "NgayNhap", "ngayTao", "createdAt");
             double soLuong = firstNumber(snapshot, model.getSoLuong(), "soLuong", "SoLuong");
-            long soNgayConLai = calcRemainingDays(ngayNhap, hanSuDung);
+            long soNgayConLai = calcDaysUntilExpiry(hanSuDung);
             if (matchesCurrentFilter(soNgayConLai, soLuong)) {
                 count++;
             }
@@ -247,7 +260,6 @@ public class LoHangAdapter extends FirestoreRecyclerAdapter<LoHang, LoHangAdapte
         TextView tvMaHang;
         TextView tvNgayNhap;
         TextView tvSoLuong;
-        TextView tvSoNgayConLai;
 
         public LoHangViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -256,7 +268,6 @@ public class LoHangAdapter extends FirestoreRecyclerAdapter<LoHang, LoHangAdapte
             tvMaHang = itemView.findViewById(R.id.tvMaHang);
             tvNgayNhap = itemView.findViewById(R.id.tvNgayNhap);
             tvSoLuong = itemView.findViewById(R.id.tvSoLuong);
-            tvSoNgayConLai = itemView.findViewById(R.id.tvSoNgayConLai);
         }
     }
 }
