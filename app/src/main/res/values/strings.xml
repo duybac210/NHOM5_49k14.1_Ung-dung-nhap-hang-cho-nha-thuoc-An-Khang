@@ -16,4 +16,8 @@
     <string name="filter_expired">Hết hạn</string>
     <string name="filter_low_stock">Số lượng thấp</string>
     <string name="empty_lo_hang">Không có dữ liệu</string>
+    <string name="nhap_hang_status_imported">Đã nhập hàng</string>
+    <string name="nhap_hang_status_canceled">Đã hủy</string>
+    <string name="confirm_delete_nhap_hang">Xóa phiếu nhập hàng %1$s?</string>
+    <string name="user_code_format">Mã: %1$s</string>
 </resources>
