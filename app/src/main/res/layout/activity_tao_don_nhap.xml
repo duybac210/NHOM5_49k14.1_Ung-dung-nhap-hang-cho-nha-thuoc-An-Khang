@@ -250,6 +250,5 @@
         </LinearLayout>
     </LinearLayout>
 
-    <include layout="@layout/layout_mock_footer_nav" />
 
 </LinearLayout>

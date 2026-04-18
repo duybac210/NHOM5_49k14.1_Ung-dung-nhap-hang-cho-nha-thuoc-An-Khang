@@ -9,15 +9,21 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
 import com.nhom5.pharma.R;
 import com.nhom5.pharma.util.SuccessDialogHelper;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CreateSupplierActivity extends AppCompatActivity {
+
+    private static final Pattern SUPPLIER_ID_PATTERN = Pattern.compile("^NCC(\\d+)$");
 
     private EditText etName, etPhone, etEmail, etAddress;
     private Button btnLuu, btnBoQua;
@@ -30,6 +36,7 @@ public class CreateSupplierActivity extends AppCompatActivity {
         setContentView(R.layout.activity_create_supplier);
 
         db = FirebaseFirestore.getInstance();
+        NhaCungCapRepository.getInstance().ensureCanonicalSchema();
         initViews();
 
         ivBack.setOnClickListener(v -> finish());
@@ -55,25 +62,10 @@ public class CreateSupplierActivity extends AppCompatActivity {
         }
 
         btnLuu.setEnabled(false);
-        // Lấy NCC mới nhất từ collection "NhaCungCap"
         db.collection("NhaCungCap")
-                .orderBy("createdAt", Query.Direction.DESCENDING)
-                .limit(1)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    String nextId = "NCC0001";
-                    if (!queryDocumentSnapshots.isEmpty()) {
-                        String lastId = queryDocumentSnapshots.getDocuments().get(0).getId();
-                        if (lastId.startsWith("NCC")) {
-                            try {
-                                int num = Integer.parseInt(lastId.substring(3));
-                                nextId = String.format("NCC%04d", num + 1);
-                            } catch (Exception e) {
-                                // Fallback if ID format is weird
-                            }
-                        }
-                    }
-                    saveSupplier(nextId);
+                    saveSupplier(buildNextSupplierId(queryDocumentSnapshots.getDocuments()));
                 })
                 .addOnFailureListener(e -> {
                     btnLuu.setEnabled(true);
@@ -81,17 +73,50 @@ public class CreateSupplierActivity extends AppCompatActivity {
                 });
     }
 
+    private String buildNextSupplierId(List<? extends DocumentSnapshot> documents) {
+        long maxNumber = 0;
+        int maxDigits = 4;
+
+        for (DocumentSnapshot document : documents) {
+            String[] candidates = new String[] { document.getId(), document.getString("maID") };
+            for (String candidate : candidates) {
+                long number = extractSupplierNumber(candidate);
+                if (number < 0) continue;
+
+                maxNumber = Math.max(maxNumber, number);
+                maxDigits = Math.max(maxDigits, candidate.trim().length() - 3);
+            }
+        }
+
+        return String.format("NCC%0" + maxDigits + "d", maxNumber + 1);
+    }
+
+    private long extractSupplierNumber(String rawId) {
+        if (rawId == null) return -1;
+
+        Matcher matcher = SUPPLIER_ID_PATTERN.matcher(rawId.trim());
+        if (!matcher.matches()) return -1;
+
+        try {
+            return Long.parseLong(matcher.group(1));
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
     private void saveSupplier(String maID) {
         Map<String, Object> supplier = new HashMap<>();
-        supplier.put("maID", maID);
-        supplier.put("tenNhaCungCap", etName.getText().toString().trim());
-        supplier.put("phone", etPhone.getText().toString().trim());
+        supplier.put("tenNCC", etName.getText().toString().trim());
+        supplier.put("sdt", etPhone.getText().toString().trim());
         supplier.put("email", etEmail.getText().toString().trim());
-        supplier.put("address", etAddress.getText().toString().trim());
-        supplier.put("trangThai", 1);
-        supplier.put("createdAt", com.google.firebase.firestore.FieldValue.serverTimestamp());
+        supplier.put("diaChi", etAddress.getText().toString().trim());
+        supplier.put("maSoThue", "");
+        supplier.put("trangThai", true);
+        supplier.put("soLuong", 0);
+        supplier.put("tongMua", 0);
+        supplier.put("ngayTao", FieldValue.serverTimestamp());
+        supplier.put("ngayCapNhat", FieldValue.serverTimestamp());
 
-        // Lưu với ID tự tạo NCCxxxx
         db.collection("NhaCungCap").document(maID).set(supplier)
                 .addOnSuccessListener(aVoid -> {
                     SuccessDialogHelper.showSuccessDialog(this, "Thêm nhà cung cấp thành công!", () -> {

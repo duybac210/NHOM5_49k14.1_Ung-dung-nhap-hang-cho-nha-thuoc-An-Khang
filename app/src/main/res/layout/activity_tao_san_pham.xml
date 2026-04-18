@@ -218,7 +218,6 @@
                 app:cornerRadius="5dp" />
         </LinearLayout>
 
-        <include layout="@layout/layout_mock_footer_nav" />
     </LinearLayout>
 
 </LinearLayout>

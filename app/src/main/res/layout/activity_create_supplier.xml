@@ -68,7 +68,6 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:labelFor="@id/etName"
                             android:text="Tên nhà cung cấp"
                             android:textColor="@color/black"
                             android:textSize="13sp"
@@ -107,7 +106,6 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:labelFor="@id/etPhone"
                                 android:text="Điện thoại"
                                 android:textColor="@color/black"
                                 android:textSize="13sp"
@@ -143,7 +141,6 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:labelFor="@id/etEmail"
                                 android:text="Email"
                                 android:textColor="@color/black"
                                 android:textSize="13sp"
@@ -175,7 +172,6 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:labelFor="@id/etAddress"
                             android:text="Địa chỉ"
                             android:textColor="@color/black"
                             android:textSize="13sp"
@@ -201,40 +197,41 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Buttons container -->
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:id="@+id/bottomActions"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="end"
                 android:layout_marginTop="24dp"
-                android:orientation="vertical">
+                android:gravity="end|center_vertical"
+                android:orientation="horizontal">
 
                 <Button
                     android:id="@+id/btnBoQua"
-                    android:layout_width="100dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="48dp"
-                    android:padding="0dp"
                     android:text="Bỏ qua"
                     android:textAllCaps="false"
+                    android:backgroundTint="@color/white"
                     android:textColor="@color/black"
-                    style="?android:attr/buttonBarButtonStyle" />
+                    app:strokeColor="@color/black"
+                    app:strokeWidth="1dp"
+                    app:cornerRadius="5dp"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
                 <Button
                     android:id="@+id/btnLuu"
-                    android:layout_width="100dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="48dp"
-                    android:layout_marginTop="12dp"
-                    android:padding="0dp"
+                    android:layout_marginStart="16dp"
+                    android:backgroundTint="#34D058"
                     android:text="Lưu"
                     android:textAllCaps="false"
-                    android:textColor="@color/login_primary"
-                    style="?android:attr/buttonBarButtonStyle" />
+                    android:textColor="@color/black"
+                    app:cornerRadius="5dp" />
             </LinearLayout>
 
         </LinearLayout>
     </ScrollView>
 
-    <!-- Bottom Nav -->
-    <include layout="@layout/layout_mock_footer_nav" />
 
 </LinearLayout>

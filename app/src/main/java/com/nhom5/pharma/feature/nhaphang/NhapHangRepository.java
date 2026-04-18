@@ -1,6 +1,7 @@
 package com.nhom5.pharma.feature.nhaphang;
 
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -8,6 +9,8 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.WriteBatch;
 import com.nhom5.pharma.feature.lohang.LoHangFilterType;
+import com.nhom5.pharma.util.FirestoreValueParser;
+import com.google.firebase.firestore.FieldValue;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -18,6 +21,9 @@ public class NhapHangRepository {
     private final FirebaseFirestore db;
     private boolean statusNormalizationDone;
     private boolean statusNormalizationRunning;
+    private boolean fieldNormalizationDone;
+    private boolean fieldNormalizationRunning;
+    private static final String DEFAULT_MA_NGUOI_NHAP = "USER003";
 
     private NhapHangRepository() {
         db = FirebaseFirestore.getInstance();
@@ -32,9 +38,10 @@ public class NhapHangRepository {
 
     public Query getAllNhapHang() {
         normalizeStatusSchemaOnce();
+        normalizeFieldSchemaOnce();
         forceNormalizeKnownPendingDocs();
         return db.collection("NhapHang")
-                .orderBy("createdAt", Query.Direction.DESCENDING);
+                .orderBy("ngayTao", Query.Direction.DESCENDING);
     }
 
     private void normalizeStatusSchemaOnce() {
@@ -48,13 +55,15 @@ public class NhapHangRepository {
             boolean hasChanges = false;
 
             for (DocumentSnapshot doc : snapshot.getDocuments()) {
-                int normalizedStatus = normalizeTrangThaiValue(doc.get("trangThai"), doc.getString("trangThaiText"));
+                Object statusRaw = safeGetField(doc, "trangThai");
+                String currentText = safeGetString(doc, "trangThaiText");
+
+                int normalizedStatus = normalizeTrangThaiValue(statusRaw, currentText);
                 String normalizedText = normalizedStatus == 1 ? "Đã nhập kho" : "Đã hủy";
 
-                Number currentStatusNumber = doc.getDouble("trangThai");
-                String currentText = doc.getString("trangThaiText");
+                Integer currentStatus = FirestoreValueParser.safeInt(doc, "trangThai");
 
-                boolean statusNeedsUpdate = currentStatusNumber == null || currentStatusNumber.intValue() != normalizedStatus;
+                boolean statusNeedsUpdate = currentStatus == null || currentStatus != normalizedStatus;
                 boolean textNeedsUpdate = currentText == null || !normalizedText.equals(currentText);
 
                 if (statusNeedsUpdate || textNeedsUpdate) {
@@ -80,9 +89,86 @@ public class NhapHangRepository {
         }).addOnFailureListener(e -> statusNormalizationRunning = false);
     }
 
+    private void normalizeFieldSchemaOnce() {
+        if (fieldNormalizationDone || fieldNormalizationRunning) {
+            return;
+        }
+        fieldNormalizationRunning = true;
+
+        db.collection("NhapHang").get().addOnSuccessListener(snapshot -> {
+            WriteBatch batch = db.batch();
+            boolean hasChanges = false;
+
+            for (DocumentSnapshot doc : snapshot.getDocuments()) {
+                Map<String, Object> updates = buildLegacyFieldUpdates(doc);
+                if (!updates.isEmpty()) {
+                    batch.update(doc.getReference(), updates);
+                    hasChanges = true;
+                }
+            }
+
+            if (hasChanges) {
+                batch.commit()
+                        .addOnSuccessListener(unused -> {
+                            fieldNormalizationDone = true;
+                            fieldNormalizationRunning = false;
+                        })
+                        .addOnFailureListener(e -> fieldNormalizationRunning = false);
+            } else {
+                fieldNormalizationDone = true;
+                fieldNormalizationRunning = false;
+            }
+        }).addOnFailureListener(e -> fieldNormalizationRunning = false);
+    }
+
+    private Map<String, Object> buildLegacyFieldUpdates(DocumentSnapshot doc) {
+        Map<String, Object> updates = new HashMap<>();
+
+        String maNCC = safeGetString(doc, "maNCC");
+        String maNhaCungCap = safeGetString(doc, "maNhaCungCap");
+        if ((maNCC == null || maNCC.trim().isEmpty()) && maNhaCungCap != null && !maNhaCungCap.trim().isEmpty()) {
+            updates.put("maNCC", maNhaCungCap.trim());
+        }
+
+        String maNguoiNhap = safeGetString(doc, "maNguoiNhap");
+        if (maNguoiNhap == null || maNguoiNhap.trim().isEmpty()) {
+            updates.put("maNguoiNhap", DEFAULT_MA_NGUOI_NHAP);
+        }
+
+        if (!doc.contains("ghiChu")) {
+            updates.put("ghiChu", "");
+        }
+
+        if (!doc.contains("ngayTao")) {
+            Object ngayNhapRaw = safeGetField(doc, "ngayNhap");
+            Object createdAtRaw = safeGetField(doc, "createdAt");
+            if (ngayNhapRaw != null) {
+                updates.put("ngayTao", ngayNhapRaw);
+            } else if (createdAtRaw != null) {
+                updates.put("ngayTao", createdAtRaw);
+            } else {
+                updates.put("ngayTao", Timestamp.now());
+            }
+        }
+
+        updates.put("ngayCapNhat", FieldValue.serverTimestamp());
+
+        // Xoa cac key lech schema cu.
+        if (doc.contains("maNhaCungCap")) updates.put("maNhaCungCap", FieldValue.delete());
+        if (doc.contains("tenNhaCungCap")) updates.put("tenNhaCungCap", FieldValue.delete());
+        if (doc.contains("hinhThucThanhToan")) updates.put("hinhThucThanhToan", FieldValue.delete());
+        if (doc.contains("createdAt")) updates.put("createdAt", FieldValue.delete());
+        if (doc.contains("maID")) updates.put("maID", FieldValue.delete());
+
+        return updates;
+    }
+
     private void forceNormalizeKnownPendingDocs() {
         forceNormalizeDoc("NH0021");
         forceNormalizeDoc("NH0022");
+        forceNormalizeDoc("NH0023");
+        forceNormalizeDoc("NH004");
+        forceNormalizeDoc("NH0004");
     }
 
     private void forceNormalizeDoc(String id) {
@@ -93,20 +179,44 @@ public class NhapHangRepository {
                     if (!doc.exists()) {
                         return;
                     }
-                    int normalizedStatus = normalizeTrangThaiValue(doc.get("trangThai"), doc.getString("trangThaiText"));
+
+                    Object statusRaw = safeGetField(doc, "trangThai");
+                    String currentText = safeGetString(doc, "trangThaiText");
+
+                    int normalizedStatus = normalizeTrangThaiValue(statusRaw, currentText);
                     String normalizedText = normalizedStatus == 1 ? "Đã nhập kho" : "Đã hủy";
-                    String currentText = doc.getString("trangThaiText");
 
-                    Object statusRaw = doc.get("trangThai");
-                    Integer rawStatus = statusRaw instanceof Number ? ((Number) statusRaw).intValue() : null;
+                    Map<String, Object> updates = buildLegacyFieldUpdates(doc);
 
-                    if (rawStatus == null || rawStatus != normalizedStatus || currentText == null || !normalizedText.equals(currentText)) {
-                        Map<String, Object> updates = new HashMap<>();
+                    Integer rawStatus = FirestoreValueParser.safeInt(doc, "trangThai");
+                    if (rawStatus == null || rawStatus != normalizedStatus) {
                         updates.put("trangThai", normalizedStatus);
+                    }
+                    if (currentText == null || !normalizedText.equals(currentText)) {
                         updates.put("trangThaiText", normalizedText);
+                    }
+
+                    if (!updates.isEmpty()) {
                         doc.getReference().update(updates);
                     }
                 });
+    }
+
+    private Object safeGetField(DocumentSnapshot doc, String field) {
+        try {
+            return doc.get(field);
+        } catch (RuntimeException ignored) {
+            return null;
+        }
+    }
+
+    private String safeGetString(DocumentSnapshot doc, String field) {
+        try {
+            return doc.getString(field);
+        } catch (RuntimeException ignored) {
+            Object raw = safeGetField(doc, field);
+            return raw == null ? null : String.valueOf(raw);
+        }
     }
 
     private int normalizeTrangThaiValue(Object trangThaiRaw, String trangThaiText) {
@@ -144,7 +254,7 @@ public class NhapHangRepository {
         if (searchText == null || searchText.trim().isEmpty()) {
             return getAllNhapHang();
         }
-        
+
         return db.collection("NhapHang")
                 .orderBy(FieldPath.documentId())
                 .startAt(searchText)
@@ -216,5 +326,9 @@ public class NhapHangRepository {
             }
             return batch.commit();
         });
+    }
+
+    public void ensureLegacyFieldSchema() {
+        normalizeFieldSchemaOnce();
     }
 }

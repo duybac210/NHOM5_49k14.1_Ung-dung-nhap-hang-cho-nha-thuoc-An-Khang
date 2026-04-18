@@ -22,6 +22,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.nhom5.pharma.MainActivity;
 import com.nhom5.pharma.R;
+import com.nhom5.pharma.feature.nhacungcap.NhaCungCapRepository;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -35,6 +36,7 @@ import java.util.regex.Pattern;
 public class TaoDonNhapActivity extends AppCompatActivity {
 
     private static final Pattern IMPORT_ID_PATTERN = Pattern.compile("^NH(\\d+)$");
+    private static final String DEFAULT_MA_NGUOI_NHAP = "USER003";
 
     private RecyclerView recyclerView;
     private SelectedProductAdapter adapter;
@@ -72,6 +74,8 @@ public class TaoDonNhapActivity extends AppCompatActivity {
         setupBackNavigation();
         setupRecyclerView();
         setupSpinners();
+        NhapHangRepository.getInstance().ensureLegacyFieldSchema();
+        NhaCungCapRepository.getInstance().ensureCanonicalSchema();
         loadSuppliersFromFirebase();
         updateAddBatchButtonVisibility();
 
@@ -115,9 +119,9 @@ public class TaoDonNhapActivity extends AppCompatActivity {
                 supplierIds.clear();
                 supplierNames.clear();
                 for (QueryDocumentSnapshot document : task.getResult()) {
-                    String name = document.getString("tenNhaCungCap");
+                    String name = document.getString("tenNCC");
                     if (name == null || name.trim().isEmpty()) {
-                        name = document.getString("tenNCC");
+                        name = document.getString("tenNhaCungCap");
                     }
                     if (name == null || name.trim().isEmpty()) {
                         name = document.getString("ten");
@@ -201,26 +205,18 @@ public class TaoDonNhapActivity extends AppCompatActivity {
 
         Map<String, Object> order = new HashMap<>();
         int statusValue = spnStatus.getSelectedItemPosition() == 1 ? 1 : 0;
-        order.put("maNhaCungCap", supplierIds.get(supplierPos));
-        order.put("tenNhaCungCap", supplierNames.get(supplierPos));
-        order.put("maID", customId);
+        String supplierId = supplierIds.get(supplierPos);
+
+        // Schema don nhap theo database cu.
+        order.put("maNCC", supplierId);
+        order.put("maNguoiNhap", DEFAULT_MA_NGUOI_NHAP);
         order.put("ngayNhap", new Timestamp(calendar.getTime()));
+        order.put("ngayTao", new Timestamp(calendar.getTime()));
+        order.put("ngayCapNhat", FieldValue.serverTimestamp());
+        order.put("ghiChu", "");
         order.put("trangThai", statusValue);
         order.put("trangThaiText", spnStatus.getSelectedItem().toString());
-        order.put("hinhThucThanhToan", spnPayment.getSelectedItem().toString());
         order.put("tongTien", currentTotal);
-        order.put("createdAt", FieldValue.serverTimestamp());
-
-        List<Map<String, Object>> details = new ArrayList<>();
-        for (SelectedProduct p : selectedProducts) {
-            Map<String, Object> item = new HashMap<>();
-            item.put("maSanPham", p.getMaSanPham());
-            item.put("tenSanPham", p.getTenSanPham());
-            item.put("soLuong", p.getSoLuong());
-            item.put("donGia", p.getDonGia());
-            details.add(item);
-        }
-        order.put("chiTiet", details);
 
         if (customId != null) {
             db.collection("NhapHang").document(customId).set(order)

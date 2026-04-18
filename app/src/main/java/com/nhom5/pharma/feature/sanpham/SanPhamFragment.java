@@ -43,61 +43,50 @@ public class SanPhamFragment extends Fragment implements ProductAdapter.OnProduc
         if (getActivity() != null && getActivity().getIntent() != null) {
             isSelectMode = getActivity().getIntent().getBooleanExtra("SELECT_MODE", false);
         }
-        
+
         RecyclerView rvProducts = view.findViewById(R.id.rv_products);
         rvProducts.setLayoutManager(new LinearLayoutManager(getContext()));
-        
-<<<<<<< HEAD
-<<<<<<< HEAD
+
         adapter = new ProductAdapter(this, isSelectMode);
-=======
-        // Sử dụng Adapter chuẩn (nhẹ hơn FirestoreRecyclerAdapter)
-=======
->>>>>>> d1df932 (Hoàn thiện giao diện sản phẩm: đồng bộ header, màu sắc xanh khi mở rộng, fix crash)
-        adapter = new ProductAdapter(this);
->>>>>>> c80b2bd (Lưu code giao diện san pham mượt và fix crash)
         rvProducts.setAdapter(adapter);
 
         viewModel = new ViewModelProvider(this).get(ProductViewModel.class);
-        
         viewModel.getProducts().observe(getViewLifecycleOwner(), products -> {
             if (products != null) {
                 fullList = products;
                 adapter.setProductList(products);
             }
         });
+        viewModel.listenToProducts();
 
-<<<<<<< HEAD
-        // Nút thêm sản phẩm (+) ở góc trên bên phải
-        View btnAdd = view.findViewById(R.id.iv_add);
-        if (btnAdd != null) {
-            btnAdd.setOnClickListener(v -> {
-                Intent intent = new Intent(getContext(), TaoSanPhamActivity.class);
-                startActivity(intent);
-            });
-=======
-        // Cập nhật tiêu đề từ layout chung
         TextView tvTitle = view.findViewById(R.id.tvTitle);
         if (tvTitle != null) {
             tvTitle.setText("Quản lý sản phẩm");
         }
 
-        // Nút thêm sản phẩm (+)
         View btnAddNew = view.findViewById(R.id.btnAddNew);
+        View searchBarContainer = view.findViewById(R.id.search_bar);
+        if (btnAddNew == null && searchBarContainer != null) {
+            btnAddNew = searchBarContainer.findViewById(R.id.btnAddNew);
+        }
         if (btnAddNew != null) {
-            btnAddNew.setOnClickListener(v -> showEditDialog(null));
->>>>>>> d1df932 (Hoàn thiện giao diện sản phẩm: đồng bộ header, màu sắc xanh khi mở rộng, fix crash)
+            btnAddNew.setOnClickListener(v -> startActivity(new Intent(requireActivity(), TaoSanPhamActivity.class)));
         }
 
-        // Thanh tìm kiếm
         EditText searchEditText = view.findViewById(R.id.searchEditText);
+        if (searchEditText == null && searchBarContainer != null) {
+            searchEditText = searchBarContainer.findViewById(R.id.searchEditText);
+        }
         if (searchEditText != null) {
             searchEditText.setHint("Tìm kiếm sản phẩm...");
             searchEditText.addTextChangedListener(new TextWatcher() {
                 @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-                @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
                     filterLocal(s.toString());
                 }
+
                 @Override public void afterTextChanged(Editable s) {}
             });
         }
@@ -105,12 +94,9 @@ public class SanPhamFragment extends Fragment implements ProductAdapter.OnProduc
         return view;
     }
 
-<<<<<<< HEAD
     @Override
     public void onItemClick(Product product) {
-        if (!isSelectMode || getActivity() == null) {
-            return;
-        }
+        if (!isSelectMode || getActivity() == null) return;
 
         Intent resultIntent = new Intent();
         resultIntent.putExtra("product_id", product.getId());
@@ -120,34 +106,29 @@ public class SanPhamFragment extends Fragment implements ProductAdapter.OnProduc
         getActivity().finish();
     }
 
-    private void filterProducts(String query) {
-=======
     private void filterLocal(String query) {
->>>>>>> c80b2bd (Lưu code giao diện san pham mượt và fix crash)
-        if (query.isEmpty()) {
+        if (query == null || query.trim().isEmpty()) {
             adapter.setProductList(fullList);
-        } else {
-            List<Product> filtered = new ArrayList<>();
-            for (Product p : fullList) {
-<<<<<<< HEAD
-                String normalizedId = p.getDisplayId();
-                if ((p.getTenSP() != null && p.getTenSP().toLowerCase().contains(query.toLowerCase())) ||
-                    (p.getId() != null && p.getId().toLowerCase().contains(query.toLowerCase())) ||
-                    (normalizedId != null && normalizedId.toLowerCase().contains(query.toLowerCase()))) {
-=======
-                String q = query.toLowerCase();
-                if ((p.getTenSP() != null && p.getTenSP().toLowerCase().contains(q)) || 
-                    (p.getId() != null && p.getId().toLowerCase().contains(q))) {
->>>>>>> d1df932 (Hoàn thiện giao diện sản phẩm: đồng bộ header, màu sắc xanh khi mở rộng, fix crash)
-                    filtered.add(p);
-                }
-            }
-            adapter.setProductList(filtered);
+            return;
         }
+
+        String q = query.toLowerCase(Locale.getDefault());
+        List<Product> filtered = new ArrayList<>();
+        for (Product p : fullList) {
+            if ((p.getTenSP() != null && p.getTenSP().toLowerCase(Locale.getDefault()).contains(q)) ||
+                    (p.getId() != null && p.getId().toLowerCase(Locale.getDefault()).contains(q)) ||
+                    (p.getDisplayId() != null && p.getDisplayId().toLowerCase(Locale.getDefault()).contains(q))) {
+                filtered.add(p);
+            }
+        }
+        adapter.setProductList(filtered);
     }
 
-    @Override public void onEditClick(Product product) { showEditDialog(product); }
-    @Override public void onDeleteClick(Product product) { showDeleteConfirmDialog(product); }
+    @Override
+    public void onEditClick(Product product) { showEditDialog(product); }
+
+    @Override
+    public void onDeleteClick(Product product) { showDeleteConfirmDialog(product); }
 
     private void showDeleteConfirmDialog(Product product) {
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_confirm_delete_product, null);
@@ -179,12 +160,8 @@ public class SanPhamFragment extends Fragment implements ProductAdapter.OnProduc
         View ivClose = dialogView.findViewById(R.id.iv_close);
 
         if (product != null) {
-<<<<<<< HEAD
-            etMaHang.setText(product.getDisplayId());
-=======
             tvDialogTitle.setText("Sửa hàng hóa");
-            etMaHang.setText(product.getId());
->>>>>>> d1df932 (Hoàn thiện giao diện sản phẩm: đồng bộ header, màu sắc xanh khi mở rộng, fix crash)
+            etMaHang.setText(product.getDisplayId());
             etMaVach.setText(product.getMaVach());
             etTenHang.setText(product.getTenSP());
             etGiaVon.setText(String.format(Locale.getDefault(), "%.0f", product.getGiavon()));
@@ -195,7 +172,6 @@ public class SanPhamFragment extends Fragment implements ProductAdapter.OnProduc
             etMaHang.setHint("Tự động tạo");
         }
 
-        // Nút X và nút Bỏ qua để thoát dialog
         if (ivClose != null) ivClose.setOnClickListener(v -> dialog.dismiss());
         dialogView.findViewById(R.id.btn_cancel).setOnClickListener(v -> dialog.dismiss());
 

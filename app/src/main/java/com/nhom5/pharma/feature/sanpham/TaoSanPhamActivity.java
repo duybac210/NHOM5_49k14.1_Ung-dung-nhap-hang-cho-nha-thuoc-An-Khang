@@ -92,7 +92,6 @@ public class TaoSanPhamActivity extends AppCompatActivity {
         product.put("trangThai", true);
         product.put("ngayTao", com.google.firebase.firestore.FieldValue.serverTimestamp());
         product.put("ngayCapNhat", com.google.firebase.firestore.FieldValue.serverTimestamp());
-        product.put("createdAt", com.google.firebase.firestore.FieldValue.serverTimestamp());
 
         db.collection("SanPham").document(maID).set(product)
                 .addOnSuccessListener(aVoid -> {

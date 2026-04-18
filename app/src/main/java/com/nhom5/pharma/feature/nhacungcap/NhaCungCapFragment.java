@@ -4,10 +4,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -27,7 +29,7 @@ public class NhaCungCapFragment extends Fragment {
     public NhaCungCapFragment() {}
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_nha_cung_cap, container, false);
         
         rvNhaCungCap = view.findViewById(R.id.rvNhaCungCap);
@@ -37,10 +39,23 @@ public class NhaCungCapFragment extends Fragment {
         setupRecyclerView();
         setupSearch();
 
-        view.findViewById(R.id.btnAddNCC).setOnClickListener(v -> {
-            Intent intent = new Intent(getContext(), CreateSupplierActivity.class);
-            startActivity(intent);
-        });
+        View btnAddNcc = view.findViewById(R.id.btnAddNCC);
+        if (btnAddNcc != null) {
+            Log.d("NhaCungCapFragment", "Button found: btnAddNCC");
+            btnAddNcc.setClickable(true);
+            btnAddNcc.setEnabled(true);
+            btnAddNcc.setOnClickListener(v -> {
+                try {
+                    Log.d("NhaCungCapFragment", "Button clicked!");
+                    startActivity(new Intent(requireActivity(), CreateSupplierActivity.class));
+                } catch (Exception e) {
+                    Toast.makeText(requireContext(), "Không mở được màn tạo nhà cung cấp: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e("NhaCungCapFragment", "Error opening CreateSupplierActivity", e);
+                }
+            });
+        } else {
+            Log.w("NhaCungCapFragment", "Button NOT found: btnAddNCC");
+        }
 
         return view;
     }

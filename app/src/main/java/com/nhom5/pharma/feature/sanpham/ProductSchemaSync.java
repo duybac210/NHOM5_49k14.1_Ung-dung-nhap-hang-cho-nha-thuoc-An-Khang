@@ -4,6 +4,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.WriteBatch;
+import com.nhom5.pharma.util.FirestoreValueParser;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,31 +42,31 @@ public final class ProductSchemaSync {
     private static Map<String, Object> buildUpdates(DocumentSnapshot doc) {
         Map<String, Object> updates = new HashMap<>();
 
-        String tenSP = doc.getString("tenSP");
-        String tenSanPham = doc.getString("tenSanPham");
+        String tenSP = FirestoreValueParser.safeString(doc, "tenSP");
+        String tenSanPham = FirestoreValueParser.safeString(doc, "tenSanPham");
         if ((tenSP == null || tenSP.trim().isEmpty()) && tenSanPham != null && !tenSanPham.trim().isEmpty()) {
             updates.put("tenSP", tenSanPham.trim());
         }
 
-        Number giavon = doc.getDouble("giavon");
-        Number giaVon = doc.getDouble("giaVon");
+        Double giavon = FirestoreValueParser.safeDouble(FirestoreValueParser.safeRaw(doc, "giavon"));
+        Double giaVon = FirestoreValueParser.safeDouble(FirestoreValueParser.safeRaw(doc, "giaVon"));
         if (giavon == null && giaVon != null) {
-            updates.put("giavon", giaVon.doubleValue());
+            updates.put("giavon", giaVon);
         }
 
-        String hangSX = doc.getString("hangSX");
-        String hangSanXuat = doc.getString("hangSanXuat");
+        String hangSX = FirestoreValueParser.safeString(doc, "hangSX");
+        String hangSanXuat = FirestoreValueParser.safeString(doc, "hangSanXuat");
         if ((hangSX == null || hangSX.trim().isEmpty()) && hangSanXuat != null && !hangSanXuat.trim().isEmpty()) {
             updates.put("hangSX", hangSanXuat.trim());
         }
 
-        String nuocSX = doc.getString("nuocSX");
-        String nuocSanXuat = doc.getString("nuocSanXuat");
+        String nuocSX = FirestoreValueParser.safeString(doc, "nuocSX");
+        String nuocSanXuat = FirestoreValueParser.safeString(doc, "nuocSanXuat");
         if ((nuocSX == null || nuocSX.trim().isEmpty()) && nuocSanXuat != null && !nuocSanXuat.trim().isEmpty()) {
             updates.put("nuocSX", nuocSanXuat.trim());
         }
 
-        String maID = doc.getString("maID");
+        String maID = FirestoreValueParser.safeString(doc, "maID");
         if (maID == null || maID.trim().isEmpty()) {
             updates.put("maID", doc.getId());
         }
