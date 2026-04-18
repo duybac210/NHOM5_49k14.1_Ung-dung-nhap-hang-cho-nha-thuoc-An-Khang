@@ -25,6 +25,8 @@ public class NhapHangAdapter extends FirestoreRecyclerAdapter<NhapHang, NhapHang
 
     private int expandedPosition = -1;
     private final NhapHangRepository repository = NhapHangRepository.getInstance();
+    private static final int ACTIVE_BLUE = Color.parseColor("#2196f3");
+    private static final int DEFAULT_TEXT = Color.BLACK;
 
     public NhapHangAdapter(@NonNull FirestoreRecyclerOptions<NhapHang> options) {
         super(options);
@@ -53,6 +55,13 @@ public class NhapHangAdapter extends FirestoreRecyclerAdapter<NhapHang, NhapHang
         // Logic Expand/Collapse
         final boolean isExpanded = (position == expandedPosition);
         holder.expandableDetail.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
+
+        int color = isExpanded ? ACTIVE_BLUE : DEFAULT_TEXT;
+        holder.tvMaDon.setTextColor(color);
+        holder.tvNgayNhap.setTextColor(color);
+        holder.tvTongTien.setTextColor(color);
+        holder.tvTrangThai.setTextColor(isExpanded ? ACTIVE_BLUE : (model.isTrangThai() ? Color.parseColor("#4CAF50") : Color.parseColor("#F44336")));
+        holder.lineMaDon.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
         
         if (isExpanded) {
             loadDetailContent(holder, id, model);
@@ -63,10 +72,14 @@ public class NhapHangAdapter extends FirestoreRecyclerAdapter<NhapHang, NhapHang
             if (currentPos == RecyclerView.NO_POSITION) return;
 
             int prev = expandedPosition;
-            expandedPosition = isExpanded ? -1 : currentPos;
+            expandedPosition = (expandedPosition == currentPos) ? -1 : currentPos;
 
-            notifyItemChanged(prev);
-            notifyItemChanged(expandedPosition);
+            if (prev != -1) {
+                notifyItemChanged(prev);
+            }
+            if (expandedPosition != -1) {
+                notifyItemChanged(expandedPosition);
+            }
         });
 
         holder.btnXoaDetail.setOnClickListener(v -> showDeleteConfirmation(holder.itemView, id));
@@ -169,8 +182,9 @@ public class NhapHangAdapter extends FirestoreRecyclerAdapter<NhapHang, NhapHang
         return new NhapHangViewHolder(view);
     }
 
-    static class NhapHangViewHolder extends RecyclerView.ViewHolder {
+    public static class NhapHangViewHolder extends RecyclerView.ViewHolder {
         TextView tvMaDon, tvNgayNhap, tvTongTien, tvTrangThai;
+        View lineMaDon;
         View expandableDetail;
         TextView tvNguoiNhapDetail, tvNgayNhapDetail, tvNhaCungCapDetail;
         LinearLayout llChiTietHang;
@@ -179,6 +193,7 @@ public class NhapHangAdapter extends FirestoreRecyclerAdapter<NhapHang, NhapHang
         public NhapHangViewHolder(@NonNull View itemView) {
             super(itemView);
             tvMaDon = itemView.findViewById(R.id.tvMaDon);
+            lineMaDon = itemView.findViewById(R.id.line_ma_don);
             tvNgayNhap = itemView.findViewById(R.id.tvNgayNhap);
             tvTongTien = itemView.findViewById(R.id.tvTongTien);
             tvTrangThai = itemView.findViewById(R.id.tvTrangThai);
