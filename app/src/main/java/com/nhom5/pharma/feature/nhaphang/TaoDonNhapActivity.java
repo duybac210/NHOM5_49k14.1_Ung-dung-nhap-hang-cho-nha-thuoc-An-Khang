@@ -16,10 +16,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.WriteBatch;
 import com.nhom5.pharma.MainActivity;
 import com.nhom5.pharma.R;
 import com.nhom5.pharma.feature.nhacungcap.NhaCungCapRepository;
@@ -207,7 +209,7 @@ public class TaoDonNhapActivity extends AppCompatActivity {
         int statusValue = spnStatus.getSelectedItemPosition() == 1 ? 1 : 0;
         String supplierId = supplierIds.get(supplierPos);
 
-        // Schema don nhap theo database cu.
+        // Schema đơn nhập.
         order.put("maNCC", supplierId);
         order.put("maNguoiNhap", DEFAULT_MA_NGUOI_NHAP);
         order.put("ngayNhap", new Timestamp(calendar.getTime()));
@@ -218,15 +220,44 @@ public class TaoDonNhapActivity extends AppCompatActivity {
         order.put("trangThaiText", spnStatus.getSelectedItem().toString());
         order.put("tongTien", currentTotal);
 
+        WriteBatch batch = db.batch();
+        DocumentReference orderRef;
+        String finalOrderId;
+
         if (customId != null) {
-            db.collection("NhapHang").document(customId).set(order)
-                    .addOnSuccessListener(aVoid -> onSaveSuccess())
-                    .addOnFailureListener(this::onSaveFailure);
+            finalOrderId = customId;
+            orderRef = db.collection("NhapHang").document(customId);
         } else {
-            db.collection("NhapHang").add(order)
-                    .addOnSuccessListener(documentReference -> onSaveSuccess())
-                    .addOnFailureListener(this::onSaveFailure);
+            orderRef = db.collection("NhapHang").document();
+            finalOrderId = orderRef.getId();
         }
+
+        // 1. Thêm lệnh tạo đơn nhập vào batch
+        batch.set(orderRef, order);
+
+        // 2. Thêm lệnh tạo từng Lô hàng vào batch để liên kết với đơn nhập và sản phẩm
+        for (SelectedProduct product : selectedProducts) {
+            DocumentReference loHangRef = db.collection("LoHang").document(); // ID tự động cho lô hàng
+            
+            Map<String, Object> loHangData = new HashMap<>();
+            loHangData.put("maNhapHang", finalOrderId); // Liên kết với đơn nhập
+            loHangData.put("maSP", product.getMaSanPham()); // Liên kết với sản phẩm
+            loHangData.put("soLuong", (double) product.getSoLuong());
+            loHangData.put("donGiaNhap", product.getDonGia());
+            loHangData.put("ngayNhap", new Timestamp(calendar.getTime()));
+            
+            // Tạm thời giả định hạn sử dụng là 2 năm kể từ ngày nhập (có thể thêm UI chọn sau)
+            Calendar expiryCalendar = (Calendar) calendar.clone();
+            expiryCalendar.add(Calendar.YEAR, 2);
+            loHangData.put("hanSuDung", new Timestamp(expiryCalendar.getTime()));
+
+            batch.set(loHangRef, loHangData);
+        }
+
+        // 3. Thực thi batch (lưu tất cả hoặc không lưu gì nếu có lỗi)
+        batch.commit()
+                .addOnSuccessListener(aVoid -> onSaveSuccess())
+                .addOnFailureListener(this::onSaveFailure);
     }
 
     private void onSaveSuccess() {
