@@ -20,13 +20,13 @@ public class NhaCungCapAdapter extends FirestoreRecyclerAdapter<NhaCungCap, NhaC
     @Override
     protected void onBindViewHolder(@NonNull ViewHolder holder, int position, @NonNull NhaCungCap model) {
         // model.getId() lúc này sẽ tự động lấy Document ID (ví dụ NCC0002)
-        holder.tvMaNCC.setText(model.getId()); 
-        holder.tvTenNCC.setText(model.getTenNCC());
-        holder.tvSDT.setText(model.getSdt()); 
-        holder.tvEmail.setText(model.getEmail());
+        holder.tvMaNCC.setText(model.getId() != null ? model.getId() : "N/A"); 
+        holder.tvTenNCC.setText(model.getTenNCC() != null ? model.getTenNCC() : "Chưa có tên");
+        holder.tvSDT.setText(model.getSdt() != null ? model.getSdt() : "---"); 
+        holder.tvEmail.setText(model.getEmail() != null ? model.getEmail() : "---");
         
-        // Lấy trực tiếp trường GiaTri từ Firestore (vì Firestore của bạn đã định dạng chuỗi sẵn)
-        holder.tvTongMua.setText(model.getGiaTri() != null ? model.getGiaTri() : "0");
+        // Sửa lỗi gọi hàm: Dùng fetchDisplayGiaTri() đã được đổi tên trong Model
+        holder.tvTongMua.setText(model.fetchDisplayGiaTri());
 
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {

@@ -4,7 +4,6 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QuerySnapshot;
 
 public class NhaCungCapRepository {
     private static NhaCungCapRepository instance;
@@ -23,22 +22,17 @@ public class NhaCungCapRepository {
         return instance;
     }
 
+    // SỬA LẠI: Lấy toàn bộ danh sách, không lọc phức tạp để CHỐNG VĂNG APP
     public Query getAllNhaCungCap() {
-        return collection.orderBy("tenNCC", Query.Direction.ASCENDING);
+        // Trả về collection thuần túy nhất để đảm bảo 100% không bị lỗi Index
+        return collection;
     }
 
     public Task<Void> updateNhaCungCap(NhaCungCap ncc) {
         return collection.document(ncc.getId()).set(ncc);
     }
 
-    public Task<Void> deleteNhaCungCap(String id) {
-        return collection.document(id).delete();
-    }
-
-    // Lấy tổng số đơn nhập hàng của nhà cung cấp này
-    public Task<QuerySnapshot> getTotalOrders(String nccId) {
-        return db.collection("NhapHang")
-                .whereEqualTo("maNCC", nccId)
-                .get();
+    public Task<Void> deactivateNhaCungCap(String id) {
+        return collection.document(id).update("trangThai", false);
     }
 }

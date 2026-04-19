@@ -9,7 +9,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -27,19 +26,15 @@ public class NhaCungCapFragment extends Fragment {
     public NhaCungCapFragment() {}
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_nha_cung_cap, container, false);
         
         rvNhaCungCap = view.findViewById(R.id.rvNhaCungCap);
-        edtSearch = view.findViewById(R.id.edtSearch);
+        edtSearch = view.findViewById(R.id.searchEditText);
         repository = NhaCungCapRepository.getInstance();
 
         setupRecyclerView();
         setupSearch();
-
-        view.findViewById(R.id.btnAddNCC).setOnClickListener(v -> {
-            // Logic thêm NCC mới nếu cần
-        });
 
         return view;
     }
@@ -48,21 +43,25 @@ public class NhaCungCapFragment extends Fragment {
         Query query = repository.getAllNhaCungCap();
         FirestoreRecyclerOptions<NhaCungCap> options = new FirestoreRecyclerOptions.Builder<NhaCungCap>()
                 .setQuery(query, NhaCungCap.class)
+                .setLifecycleOwner(getViewLifecycleOwner()) // THÊM DÒNG NÀY ĐỂ CHỐNG VĂNG APP
                 .build();
 
         adapter = new NhaCungCapAdapter(options);
         rvNhaCungCap.setLayoutManager(new LinearLayoutManager(getContext()));
+        rvNhaCungCap.setHasFixedSize(true);
         rvNhaCungCap.setAdapter(adapter);
 
         adapter.setOnItemClickListener(ncc -> {
-            // Chuyển sang màn hình Chi tiết (Màn hình 2)
-            Intent intent = new Intent(getContext(), ChiTietNhaCungCapActivity.class);
-            intent.putExtra("NHA_CUNG_CAP", ncc);
-            startActivity(intent);
+            if (ncc != null) {
+                Intent intent = new Intent(getContext(), ChiTietNhaCungCapActivity.class);
+                intent.putExtra("NHA_CUNG_CAP", ncc);
+                startActivity(intent);
+            }
         });
     }
 
     private void setupSearch() {
+        if (edtSearch == null) return;
         edtSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -75,12 +74,14 @@ public class NhaCungCapFragment extends Fragment {
                     newQuery = repository.getAllNhaCungCap();
                 } else {
                     newQuery = repository.getAllNhaCungCap()
-                            .whereGreaterThanOrEqualTo("maNCC", searchText)
-                            .whereLessThanOrEqualTo("maNCC", searchText + "\uf8ff");
+                            .orderBy("tenNCC")
+                            .startAt(searchText)
+                            .endAt(searchText + "\uf8ff");
                 }
                 
                 FirestoreRecyclerOptions<NhaCungCap> newOptions = new FirestoreRecyclerOptions.Builder<NhaCungCap>()
                         .setQuery(newQuery, NhaCungCap.class)
+                        .setLifecycleOwner(getViewLifecycleOwner())
                         .build();
                 adapter.updateOptions(newOptions);
             }
@@ -90,15 +91,5 @@ public class NhaCungCapFragment extends Fragment {
         });
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        if (adapter != null) adapter.startListening();
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        if (adapter != null) adapter.stopListening();
-    }
+    // Xóa startListening và stopListening vì đã có LifecycleOwner tự quản lý
 }

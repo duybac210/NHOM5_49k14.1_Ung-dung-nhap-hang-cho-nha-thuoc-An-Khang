@@ -39,10 +39,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        mAuth = FirebaseAuth.getInstance();
-        
-        // Tạm thời bỏ qua đăng nhập để vào thẳng Sản phẩm
+        // Tạm thời bỏ qua đăng nhập để làm Nhà cung cấp
         /*
+        mAuth = FirebaseAuth.getInstance();
         if (mAuth.getCurrentUser() == null) {
             Intent intent = new Intent(this, DangNhapActivity.class);
             startActivity(intent);
@@ -80,8 +79,8 @@ public class MainActivity extends AppCompatActivity {
         tabSuppliers.setOnClickListener(v -> selectTab(TAB_SUPPLIERS));
         tabManage.setOnClickListener(v -> selectTab(TAB_MANAGE));
 
-        // Vào thẳng tab Sản phẩm
-        selectTab(TAB_PRODUCTS);
+        // CHUYỂN VỀ TAB NHÀ CUNG CẤP LÀM MẶC ĐỊNH
+        selectTab(TAB_SUPPLIERS);
     }
 
     private void selectTab(int index) {
@@ -103,14 +102,15 @@ public class MainActivity extends AppCompatActivity {
                 selected = new QuanLyFragment();
                 break;
             default:
-                selected = new NhapHangFragment();
-                index = TAB_ORDERS;
+                selected = new NhaCungCapFragment();
+                index = TAB_SUPPLIERS;
                 break;
         }
 
         loadFragment(selected);
 
         for (int i = 0; i < navIcons.length; i++) {
+            if (navIcons[i] == null || navLabels[i] == null) continue;
             boolean isSelected = (i == index);
             int color = isSelected ? ACTIVE_COLOR : INACTIVE_COLOR;
             ImageViewCompat.setImageTintList(navIcons[i], ColorStateList.valueOf(color));
