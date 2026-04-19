@@ -4,11 +4,13 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -33,7 +35,7 @@ public class NhaCungCapFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_nha_cung_cap, container, false);
         
         rvNhaCungCap = view.findViewById(R.id.rvNhaCungCap);
-        edtSearch = view.findViewById(R.id.edtSearch); // Fix ID match với XML
+        edtSearch = view.findViewById(R.id.edtSearch);
         btnAddNCC = view.findViewById(R.id.btnAddNCC);
         
         repository = NhaCungCapRepository.getInstance();
@@ -53,14 +55,25 @@ public class NhaCungCapFragment extends Fragment {
                 .build();
 
         adapter = new NhaCungCapAdapter(options);
-        rvNhaCungCap.setLayoutManager(new LinearLayoutManager(getContext()));
-        rvNhaCungCap.setHasFixedSize(true);
+        
+        // FIX LỖI CRASH: Bọc LayoutManager để bắt lỗi IndexOutOfBoundsException
+        rvNhaCungCap.setLayoutManager(new LinearLayoutManager(getContext()) {
+            @Override
+            public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
+                try {
+                    super.onLayoutChildren(recycler, state);
+                } catch (IndexOutOfBoundsException e) {
+                    Log.e("NhaCungCapFragment", "RecyclerView Inconsistency detected - Bắt lỗi thành công");
+                }
+            }
+        });
+        
         rvNhaCungCap.setAdapter(adapter);
 
         adapter.setOnItemClickListener(ncc -> {
-            if (ncc != null) {
+            if (ncc != null && ncc.getId() != null && getContext() != null) {
                 Intent intent = new Intent(getContext(), ChiTietNhaCungCapActivity.class);
-                intent.putExtra("NHA_CUNG_CAP", ncc);
+                intent.putExtra("NCC_ID", ncc.getId()); 
                 startActivity(intent);
             }
         });
@@ -71,21 +84,17 @@ public class NhaCungCapFragment extends Fragment {
         edtSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 String searchText = s.toString().trim();
                 Query newQuery = repository.searchById(searchText);
-                
                 FirestoreRecyclerOptions<NhaCungCap> newOptions = new FirestoreRecyclerOptions.Builder<NhaCungCap>()
                         .setQuery(newQuery, NhaCungCap.class)
                         .setLifecycleOwner(getViewLifecycleOwner())
                         .build();
                 adapter.updateOptions(newOptions);
             }
-
-            @Override
-            public void afterTextChanged(Editable s) {}
+            @Override public void afterTextChanged(Editable s) {}
         });
     }
 

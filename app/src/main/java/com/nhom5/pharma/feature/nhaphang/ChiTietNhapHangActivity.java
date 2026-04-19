@@ -97,6 +97,7 @@ public class ChiTietNhapHangActivity extends AppCompatActivity {
     private void deleteOrder() {
         if (nhapHangId == null) return;
         repository.deleteNhapHang(nhapHangId).addOnSuccessListener(aVoid -> {
+            if (isFinishing() || isDestroyed()) return;
             Toast.makeText(this, "Đã xóa thành công", Toast.LENGTH_SHORT).show();
             finish(); 
         });
@@ -105,6 +106,7 @@ public class ChiTietNhapHangActivity extends AppCompatActivity {
     private void loadData() {
         if (nhapHangId == null) return;
         repository.getNhapHangById(nhapHangId).addOnSuccessListener(doc -> {
+            if (isFinishing() || isDestroyed()) return;
             if (doc.exists()) {
                 NhapHang nhapHang = NhapHang.fromDocument(doc);
                 displayNhapHangInfo(nhapHang);
@@ -113,7 +115,6 @@ public class ChiTietNhapHangActivity extends AppCompatActivity {
                     fetchSupplierName(nhapHang.getMaNCC());
                 }
 
-                // Truy vấn tên người dùng thay vì để cứng Admin
                 if (nhapHang.getMaNguoiNhap() != null) {
                     fetchUserName(nhapHang.getMaNguoiNhap());
                 } else {
@@ -126,6 +127,7 @@ public class ChiTietNhapHangActivity extends AppCompatActivity {
     }
 
     private void displayNhapHangInfo(NhapHang nhapHang) {
+        if (tvOrderCodeTitle == null) return;
         tvOrderCodeTitle.setText(nhapHang.getDisplayId());
         int trangThai = nhapHang.getTrangThaiValue();
         if (trangThai == 1) {
@@ -144,6 +146,7 @@ public class ChiTietNhapHangActivity extends AppCompatActivity {
 
     private void fetchSupplierName(String maNCC) {
         repository.getSupplierById(maNCC).addOnSuccessListener(doc -> {
+            if (isFinishing() || isDestroyed()) return;
             if (doc.exists()) {
                 String name = doc.getString("tenNCC");
                 if (name == null) name = doc.getString("TenNCC");
@@ -156,8 +159,8 @@ public class ChiTietNhapHangActivity extends AppCompatActivity {
 
     private void fetchUserName(String maNguoiNhap) {
         repository.getUserById(maNguoiNhap).addOnSuccessListener(doc -> {
+            if (isFinishing() || isDestroyed()) return;
             if (doc.exists()) {
-                // Thử cả 2 trường hợp tên trường (tenNguoiDung hoặc hoTen)
                 String name = doc.getString("tenNguoiDung");
                 if (name == null) name = doc.getString("hoTen");
                 if (name == null) name = "Người dùng (" + maNguoiNhap + ")";
@@ -169,8 +172,10 @@ public class ChiTietNhapHangActivity extends AppCompatActivity {
     }
 
     private void fetchLoHangList(String id) {
+        if (llChiTiet == null) return;
         llChiTiet.removeAllViews();
         repository.getLoHangByNhapHangId(id).addOnSuccessListener(snapshot -> {
+            if (isFinishing() || isDestroyed()) return;
             for (DocumentSnapshot doc : snapshot) {
                 View itemView = LayoutInflater.from(this).inflate(R.layout.item_chi_tiet_lo_hang, llChiTiet, false);
                 ((TextView)itemView.findViewById(R.id.tvSoLo)).setText(doc.getId());
@@ -188,6 +193,7 @@ public class ChiTietNhapHangActivity extends AppCompatActivity {
                 String maSP = doc.getString("maSP");
                 if (maSP != null) {
                     repository.getProductById(maSP).addOnSuccessListener(spDoc -> {
+                        if (isFinishing() || isDestroyed()) return;
                         if (spDoc.exists()) {
                             String tenSP = FirestoreValueParser.safeString(spDoc, "tenSP");
                             if (tenSP == null) tenSP = FirestoreValueParser.safeString(spDoc, "TenSP");
@@ -238,8 +244,6 @@ public class ChiTietNhapHangActivity extends AppCompatActivity {
                         Log.e("NhapHangFragment", "Open TaoDonNhapActivity failed", e);
                     }
                 });
-            } else {
-                Log.w("NhapHangFragment", "Không tìm thấy nút thêm mới");
             }
 
             return view;

@@ -36,6 +36,10 @@ public class NhaCungCapRepository {
                 .orderBy(FieldPath.documentId(), Query.Direction.ASCENDING);
     }
 
+    public Task<DocumentSnapshot> getNhaCungCapById(String id) {
+        return collection.document(id).get();
+    }
+
     public Query searchById(String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) return getAllNhaCungCap();
         String normalized = keyword.trim().toUpperCase();

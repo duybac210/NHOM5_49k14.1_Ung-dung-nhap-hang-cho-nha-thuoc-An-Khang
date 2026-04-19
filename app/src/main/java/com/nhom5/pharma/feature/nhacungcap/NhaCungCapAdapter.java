@@ -19,25 +19,26 @@ public class NhaCungCapAdapter extends FirestoreRecyclerAdapter<NhaCungCap, NhaC
 
     @Override
     protected void onBindViewHolder(@NonNull ViewHolder holder, int position, @NonNull NhaCungCap model) {
-        // Kiểm tra an toàn: Nếu model hoặc ID trống
+        // KIỂM TRA AN TOÀN DATA
         if (model == null) return;
         
-        String id = model.getId();
-        holder.tvMaNCC.setText(id != null ? id : "N/A"); 
-        
-        // Kiểm tra an toàn: Nếu các trường dữ liệu bị null trên Firestore
+        // Gán ID từ snapshot để đảm bảo chính xác
+        String id = getSnapshots().getSnapshot(position).getId();
+        model.setId(id);
+
+        holder.tvMaNCC.setText(id); 
         holder.tvTenNCC.setText(model.getTenNCC() != null ? model.getTenNCC() : "Chưa có tên");
-        
-        // Sử dụng hàm fetchSdt() an toàn đã viết trong Model
         holder.tvSDT.setText(model.fetchSdt()); 
         holder.tvEmail.setText(model.getEmail() != null ? model.getEmail() : "---");
-        
-        // Sử dụng hàm fetchDisplayGiaTri() chuẩn (đã đổi tên để tránh làm bẩn Firebase)
         holder.tvTongMua.setText(model.fetchDisplayGiaTri());
 
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
-                listener.onItemClick(model);
+                // Kiểm tra lại position trước khi gọi listener
+                int currentPos = holder.getBindingAdapterPosition();
+                if (currentPos != RecyclerView.NO_POSITION) {
+                    listener.onItemClick(getItem(currentPos));
+                }
             }
         });
     }
@@ -47,6 +48,13 @@ public class NhaCungCapAdapter extends FirestoreRecyclerAdapter<NhaCungCap, NhaC
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_nha_cung_cap, parent, false);
         return new ViewHolder(view);
+    }
+
+    // Ghi đè để tránh lỗi IndexOutOfBounds khi data thay đổi nhanh
+    @Override
+    public void onDataChanged() {
+        super.onDataChanged();
+        notifyDataSetChanged();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
