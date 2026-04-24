@@ -20,7 +20,6 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -39,6 +38,12 @@
         <activity
             android:name=".feature.nhaphang.TaoDonNhapActivity"
             android:exported="false"
+            android:theme="@style/Theme.PharmaImportManager" />
+
+        <activity
+            android:name=".feature.nhaphang.ThemLoHangActivity"
+            android:exported="false"
+            android:label="Thêm lô hàng"
             android:theme="@style/Theme.PharmaImportManager" />
 
         <activity
