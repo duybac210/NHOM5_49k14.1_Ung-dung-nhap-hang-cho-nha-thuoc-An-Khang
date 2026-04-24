@@ -68,6 +68,35 @@ public class TaoDonNhapActivity extends AppCompatActivity {
             }
     );
 
+    // Launcher cho màn hình Thêm Lô Hàng
+    private final ActivityResultLauncher<Intent> addBatchLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    String productId = result.getData().getStringExtra("product_id");
+                    long mfgDate = result.getData().getLongExtra("mfg_date", 0);
+                    long expDate = result.getData().getLongExtra("exp_date", 0);
+                    double price = result.getData().getDoubleExtra("price", 0);
+                    double quantity = result.getData().getDoubleExtra("quantity", 0);
+
+                    // Cập nhật trạng thái lô cho thuốc tương ứng
+                    for (SelectedProduct p : selectedProducts) {
+                        if (p.getMaSanPham().equals(productId)) {
+                            LoHang loHang = new LoHang();
+                            loHang.setMaSP(productId);
+                            loHang.setNgaySanXuat(new java.util.Date(mfgDate));
+                            loHang.setHanSuDung(new java.util.Date(expDate));
+                            loHang.setDonGiaNhap(price);
+                            loHang.setSoLuong(quantity);
+                            p.addLoHang(loHang);
+                            break;
+                        }
+                    }
+                    adapter.notifyDataSetChanged();
+                }
+            }
+    );
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,9 +107,6 @@ public class TaoDonNhapActivity extends AppCompatActivity {
         setupBackNavigation();
         setupRecyclerView();
         setupSpinners();
-        NhapHangRepository.getInstance().ensureLegacyFieldSchema();
-        NhapHangRepository.getInstance().ensureCanonicalImportIdSchema();
-        NhaCungCapRepository.getInstance().ensureCanonicalSchema();
         loadSuppliersFromFirebase();
         updateAddBatchButtonVisibility();
 
@@ -91,6 +117,21 @@ public class TaoDonNhapActivity extends AppCompatActivity {
             intent.putExtra(MainActivity.EXTRA_SELECT_MODE, true);
             intent.putExtra(MainActivity.EXTRA_START_TAB, 1);
             pickProductLauncher.launch(intent);
+        });
+
+        btnAddBatch.setOnClickListener(v -> {
+            Intent intent = new Intent(this, ThemLoHangActivity.class);
+            
+            ArrayList<String> names = new ArrayList<>();
+            ArrayList<String> ids = new ArrayList<>();
+            for (SelectedProduct p : selectedProducts) {
+                names.add(p.getTenSanPham());
+                ids.add(p.getMaSanPham());
+            }
+            intent.putStringArrayListExtra("SELECTED_PRODUCT_NAMES", names);
+            intent.putStringArrayListExtra("SELECTED_PRODUCT_IDS", ids);
+            
+            addBatchLauncher.launch(intent);
         });
 
         etImportDate.setOnClickListener(v -> showDatePicker());
@@ -113,7 +154,6 @@ public class TaoDonNhapActivity extends AppCompatActivity {
         btnSave = findViewById(R.id.btnSave);
         etImportDate.setFocusable(false);
 
-        // Khởi tạo Adapter rỗng ngay từ đầu để tránh NullPointerException khi UI đo đạc (measure)
         supplierAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, supplierNames);
         supplierAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spnSupplier.setAdapter(supplierAdapter);
@@ -129,9 +169,6 @@ public class TaoDonNhapActivity extends AppCompatActivity {
                     if (name == null || name.trim().isEmpty()) {
                         name = document.getString("tenNhaCungCap");
                     }
-                    if (name == null || name.trim().isEmpty()) {
-                        name = document.getString("ten");
-                    }
                     if (name != null) {
                         supplierIds.add(document.getId());
                         supplierNames.add(name);
@@ -142,8 +179,6 @@ public class TaoDonNhapActivity extends AppCompatActivity {
                     supplierNames.add("Chưa có nhà cung cấp");
                 }
                 supplierAdapter.notifyDataSetChanged();
-            } else {
-                Toast.makeText(this, "Không thể tải danh sách nhà cung cấp", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -153,8 +188,6 @@ public class TaoDonNhapActivity extends AppCompatActivity {
             Toast.makeText(this, "Vui lòng thêm ít nhất 1 sản phẩm", Toast.LENGTH_SHORT).show();
             return;
         }
-
-        NhapHangRepository.getInstance().ensureCanonicalImportIdSchema();
 
         btnSave.setEnabled(false);
         db.collection("NhapHang")
@@ -168,41 +201,25 @@ public class TaoDonNhapActivity extends AppCompatActivity {
 
     private String buildNextImportId(List<? extends DocumentSnapshot> documents) {
         Set<Long> usedNumbers = new HashSet<>();
-
         for (DocumentSnapshot document : documents) {
             String maIdField = document.getString("maID");
             String[] candidates = new String[] { maIdField, document.getId() };
             for (String candidate : candidates) {
                 long number = extractImportIdNumber(candidate);
-                if (number > 0) {
-                    usedNumbers.add(number);
-                }
+                if (number > 0) usedNumbers.add(number);
             }
         }
-
         long nextNumber = 1;
-        while (usedNumbers.contains(nextNumber)) {
-            nextNumber++;
-        }
-
+        while (usedNumbers.contains(nextNumber)) nextNumber++;
         return String.format(Locale.getDefault(), "NH%04d", nextNumber);
     }
 
     private long extractImportIdNumber(String rawId) {
-        if (rawId == null) {
-            return -1;
-        }
-
+        if (rawId == null) return -1;
         Matcher matcher = IMPORT_ID_PATTERN.matcher(rawId.trim());
-        if (!matcher.matches()) {
-            return -1;
-        }
-
-        try {
-            return Long.parseLong(matcher.group(1));
-        } catch (NumberFormatException e) {
-            return -1;
-        }
+        if (!matcher.matches()) return -1;
+        try { return Long.parseLong(matcher.group(1)); } 
+        catch (NumberFormatException e) { return -1; }
     }
 
     private void saveOrderToFirebase(String customId) {
@@ -217,48 +234,34 @@ public class TaoDonNhapActivity extends AppCompatActivity {
         int statusValue = spnStatus.getSelectedItemPosition() == 1 ? 1 : 0;
         String supplierId = supplierIds.get(supplierPos);
 
-        // Schema đơn nhập.
         order.put("maNCC", supplierId);
         order.put("maID", customId);
         order.put("maNguoiNhap", DEFAULT_MA_NGUOI_NHAP);
         order.put("ngayNhap", new Timestamp(calendar.getTime()));
         order.put("ngayTao", new Timestamp(calendar.getTime()));
         order.put("ngayCapNhat", FieldValue.serverTimestamp());
-        order.put("ghiChu", "");
         order.put("trangThai", statusValue);
-        order.put("trangThaiText", spnStatus.getSelectedItem().toString());
+        order.put("trangThaiText", statusValue == 1 ? "Đã nhập kho" : "Đã hủy");
         order.put("tongTien", currentTotal);
 
         WriteBatch batch = db.batch();
-        if (customId == null || customId.trim().isEmpty()) {
-            Toast.makeText(this, "Không tạo được mã đơn hợp lệ", Toast.LENGTH_SHORT).show();
-            btnSave.setEnabled(true);
-            return;
-        }
-        String finalOrderId = customId.trim();
-        DocumentReference orderRef = db.collection("NhapHang").document(finalOrderId);
-
-        // 1. Thêm lệnh tạo đơn nhập vào batch
+        DocumentReference orderRef = db.collection("NhapHang").document(customId.trim());
         batch.set(orderRef, order);
 
-        // 2. Thêm lệnh tạo từng Lô hàng vào batch để liên kết với đơn nhập và sản phẩm
-        for (int index = 0; index < selectedProducts.size(); index++) {
-            SelectedProduct product = selectedProducts.get(index);
-            String soLo = String.format(Locale.getDefault(), "%s-L%02d", finalOrderId, index + 1);
-            DocumentReference loHangRef = db.collection("LoHang").document(soLo);
-
-            Map<String, Object> loHangData = new HashMap<>();
-            loHangData.put("soLo", soLo);
-            loHangData.put("maNhapHang", finalOrderId); // Liên kết với đơn nhập
-            loHangData.put("maSP", product.getMaSanPham()); // Liên kết với sản phẩm
-            loHangData.put("soLuong", (double) product.getSoLuong());
-            loHangData.put("donGiaNhap", product.getDonGia());
-            loHangData.put("ngayNhap", new Timestamp(calendar.getTime()));
-
-            batch.set(loHangRef, loHangData);
+        // Lưu Lô hàng
+        for (SelectedProduct product : selectedProducts) {
+            for (int i = 0; i < product.getLoHangs().size(); i++) {
+                LoHang lo = product.getLoHangs().get(i);
+                String soLo = String.format(Locale.getDefault(), "%s-L%02d", customId, i + 1);
+                DocumentReference loRef = db.collection("LoHang").document(soLo);
+                
+                Map<String, Object> data = lo.toFirestoreMap();
+                data.put("soLo", soLo);
+                data.put("maNhapHang", customId);
+                batch.set(loRef, data);
+            }
         }
 
-        // 3. Thực thi batch (lưu tất cả hoặc không lưu gì nếu có lỗi)
         batch.commit()
                 .addOnSuccessListener(aVoid -> onSaveSuccess())
                 .addOnFailureListener(this::onSaveFailure);
@@ -275,12 +278,10 @@ public class TaoDonNhapActivity extends AppCompatActivity {
     }
 
     private void showDatePicker() {
-        DatePickerDialog datePickerDialog = new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
+        new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
             calendar.set(year, month, dayOfMonth);
             updateDateLabel();
-        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
-        datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
-        datePickerDialog.show();
+        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show();
     }
 
     private void updateDateLabel() {
@@ -293,6 +294,7 @@ public class TaoDonNhapActivity extends AppCompatActivity {
         ArrayAdapter<String> statusAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, statusArray);
         statusAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spnStatus.setAdapter(statusAdapter);
+        spnStatus.setSelection(1);
 
         String[] paymentArray = {"Chưa thanh toán", "Thanh toán một phần", "Đã thanh toán"};
         ArrayAdapter<String> paymentAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, paymentArray);

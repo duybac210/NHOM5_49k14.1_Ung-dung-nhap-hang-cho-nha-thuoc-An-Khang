@@ -7,7 +7,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -39,66 +38,66 @@ public class SelectedProductAdapter extends RecyclerView.Adapter<SelectedProduct
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         SelectedProduct product = productList.get(position);
-        if (holder.quantityWatcher != null) {
-            holder.tvQuantity.removeTextChangedListener(holder.quantityWatcher);
-        }
         
         holder.tvProductName.setText(product.getTenSanPham());
         DecimalFormat formatter = new DecimalFormat("#,###");
-        holder.tvProductPrice.setText(formatter.format(product.getDonGia()) + " đồng/hộp");
-        holder.tvQuantity.setText(String.valueOf(product.getSoLuong()));
-        holder.tvQuantity.setSelection(holder.tvQuantity.getText().length());
-        holder.qtySelector.setBackgroundColor(Color.parseColor("#F0F0F0"));
-        holder.btnMinus.setText("-");
-        holder.btnPlus.setText("+");
+        holder.tvProductPrice.setText(formatter.format(product.getDonGia()) + "đ/hộp");
 
-        holder.quantityWatcher = new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
-            @Override public void afterTextChanged(Editable s) {
-                if (holder.getBindingAdapterPosition() == RecyclerView.NO_POSITION) return;
-                String raw = s.toString().trim();
-                if (raw.isEmpty()) return;
-                try {
-                    int qty = Integer.parseInt(raw);
-                    if (qty < 1) qty = 1;
-                    if (qty != product.getSoLuong()) {
-                        product.setSoLuong(qty);
-                        if (listener != null) listener.onQuantityChanged();
-                    }
-                } catch (NumberFormatException ignored) {
-                }
-            }
-        };
-        holder.tvQuantity.addTextChangedListener(holder.quantityWatcher);
-        holder.tvQuantity.setOnFocusChangeListener((v, hasFocus) -> {
-            if (!hasFocus) {
-                String raw = holder.tvQuantity.getText() != null ? holder.tvQuantity.getText().toString().trim() : "";
-                if (raw.isEmpty()) {
-                    product.setSoLuong(1);
-                    holder.tvQuantity.setText("1");
-                    if (listener != null) listener.onQuantityChanged();
-                }
-            }
-        });
+        // Tránh vòng lặp vô tận khi setText kích hoạt TextWatcher
+        holder.isUpdating = true;
+        holder.etQuantity.setText(String.valueOf(product.getSoLuong()));
+        holder.isUpdating = false;
+
+        // Cập nhật trạng thái Chip Lô
+        if (product.isHasBatch()) {
+            holder.tvBatchStatus.setText("Đã có lô");
+            holder.tvBatchStatus.setTextColor(Color.parseColor("#2E7D32"));
+            holder.tvBatchStatus.setBackgroundResource(R.drawable.bg_chip_success);
+        } else {
+            holder.tvBatchStatus.setText("Chưa có lô");
+            holder.tvBatchStatus.setTextColor(Color.parseColor("#E64A19"));
+            holder.tvBatchStatus.setBackgroundResource(R.drawable.bg_chip_warning);
+        }
 
         holder.btnPlus.setOnClickListener(v -> {
-            product.setSoLuong(product.getSoLuong() + 1);
-            holder.tvQuantity.setText(String.valueOf(product.getSoLuong()));
+            int newQty = product.getSoLuong() + 1;
+            product.setSoLuong(newQty);
+            notifyItemChanged(position);
             if (listener != null) listener.onQuantityChanged();
         });
 
         holder.btnMinus.setOnClickListener(v -> {
             if (product.getSoLuong() > 1) {
-                product.setSoLuong(product.getSoLuong() - 1);
-                holder.tvQuantity.setText(String.valueOf(product.getSoLuong()));
+                int newQty = product.getSoLuong() - 1;
+                product.setSoLuong(newQty);
+                notifyItemChanged(position);
             } else {
-                // Nếu giảm về 0 thì xóa khỏi danh sách
                 productList.remove(position);
                 notifyItemRemoved(position);
                 notifyItemRangeChanged(position, productList.size());
             }
             if (listener != null) listener.onQuantityChanged();
+        });
+
+        // Xử lý nhập trực tiếp từ bàn phím
+        holder.etQuantity.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (holder.isUpdating) return;
+                try {
+                    int val = Integer.parseInt(s.toString());
+                    if (val > 0) {
+                        product.setSoLuong(val);
+                        if (listener != null) listener.onQuantityChanged();
+                    }
+                } catch (NumberFormatException ignored) {}
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
         });
     }
 
@@ -107,30 +106,20 @@ public class SelectedProductAdapter extends RecyclerView.Adapter<SelectedProduct
         return productList.size();
     }
 
-    @Override
-    public void onViewRecycled(@NonNull ViewHolder holder) {
-        if (holder.quantityWatcher != null) {
-            holder.tvQuantity.removeTextChangedListener(holder.quantityWatcher);
-            holder.quantityWatcher = null;
-        }
-        holder.tvQuantity.setOnFocusChangeListener(null);
-        super.onViewRecycled(holder);
-    }
-
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvProductName, tvProductPrice, btnMinus, btnPlus;
-        EditText tvQuantity;
-        LinearLayout qtySelector;
-        TextWatcher quantityWatcher;
+        TextView tvProductName, tvProductPrice, tvBatchStatus;
+        EditText etQuantity;
+        View btnMinus, btnPlus;
+        boolean isUpdating = false;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvProductName = itemView.findViewById(R.id.tvProductName);
             tvProductPrice = itemView.findViewById(R.id.tvProductPrice);
-            tvQuantity = itemView.findViewById(R.id.tvQuantity);
+            etQuantity = itemView.findViewById(R.id.etQuantity);
+            tvBatchStatus = itemView.findViewById(R.id.tvBatchStatus);
             btnMinus = itemView.findViewById(R.id.btnMinus);
             btnPlus = itemView.findViewById(R.id.btnPlus);
-            qtySelector = itemView.findViewById(R.id.qtySelector);
         }
     }
 }
