@@ -24,7 +24,7 @@ import java.util.Map;
 public class ThemLoHangActivity extends AppCompatActivity {
 
     private Spinner spnProductPicker;
-    private EditText etMfgDate, etExpDate, etImportPrice, etQuantity;
+    private EditText etMfgDate, etExpDate, etQuantity;
     private Calendar calendarMfg = Calendar.getInstance();
     private Calendar calendarExp = Calendar.getInstance();
     private FirebaseFirestore db;
@@ -53,7 +53,6 @@ public class ThemLoHangActivity extends AppCompatActivity {
         spnProductPicker = findViewById(R.id.spnProductPicker);
         etMfgDate = findViewById(R.id.etMfgDate);
         etExpDate = findViewById(R.id.etExpDate);
-        etImportPrice = findViewById(R.id.etImportPrice);
         etQuantity = findViewById(R.id.etQuantity);
     }
 
@@ -91,7 +90,7 @@ public class ThemLoHangActivity extends AppCompatActivity {
         data.putExtra("product_id", productIds.get(spnProductPicker.getSelectedItemPosition()));
         data.putExtra("mfg_date", calendarMfg.getTimeInMillis());
         data.putExtra("exp_date", calendarExp.getTimeInMillis());
-        data.putExtra("price", Double.parseDouble(etImportPrice.getText().toString()));
+        data.putExtra("price", 0.0); // Đơn giá nhập đã bị xóa khỏi layout
         data.putExtra("quantity", Double.parseDouble(etQuantity.getText().toString()));
         
         setResult(RESULT_OK, data);
