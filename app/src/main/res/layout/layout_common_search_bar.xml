@@ -52,6 +52,7 @@
                 android:id="@+id/ivSearchIcon"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
+                android:layout_marginEnd="10dp"
                 android:src="@drawable/ic_search"
                 app:tint="#64748b"
                 android:contentDescription="@null"

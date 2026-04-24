@@ -143,7 +143,7 @@ public class NhapHangAdapter extends FirestoreRecyclerAdapter<NhapHang, NhapHang
         repository.getLoHangByNhapHangId(orderId).addOnSuccessListener(snapshot -> {
             for (DocumentSnapshot doc : snapshot) {
                 View itemView = LayoutInflater.from(holder.itemView.getContext())
-                        .inflate(R.layout.item_chi_tiet_lo_hang, holder.llChiTietHang, false);
+                        .inflate(R.layout.item_chi_tiet_lo_hang_nhap_hang, holder.llChiTietHang, false);
                 
                 ((TextView)itemView.findViewById(R.id.tvSoLo)).setText(doc.getId());
                 

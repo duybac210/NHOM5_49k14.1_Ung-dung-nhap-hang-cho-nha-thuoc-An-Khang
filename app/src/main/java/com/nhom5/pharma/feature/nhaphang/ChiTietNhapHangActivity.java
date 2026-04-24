@@ -204,7 +204,7 @@ public class ChiTietNhapHangActivity extends AppCompatActivity {
 
                 syncLegacyLoHangFields(doc, loHang);
 
-                View itemView = LayoutInflater.from(this).inflate(R.layout.item_chi_tiet_lo_hang, llChiTiet, false);
+                View itemView = LayoutInflater.from(this).inflate(R.layout.item_chi_tiet_lo_hang_nhap_hang, llChiTiet, false);
                 ((TextView)itemView.findViewById(R.id.tvSoLo)).setText(soLoDoc);
 
                 Double sl = FirestoreValueParser.safeDouble(FirestoreValueParser.safeRaw(doc, "soLuong"));
