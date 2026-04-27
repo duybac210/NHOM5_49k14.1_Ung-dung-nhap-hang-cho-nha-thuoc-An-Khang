@@ -3,6 +3,7 @@ package com.nhom5.pharma.feature.quanly;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -40,7 +41,7 @@ import com.nhom5.pharma.util.SecurityUtils;
 public class QuanLyFragment extends Fragment {
 
     private RelativeLayout btnBasicInfo, btnChangePassword, btnBackup, btnLogout;
-    private LinearLayout expandableBasicInfo;
+    private View expandableBasicInfo;
     private ImageView ivArrowBasicInfo;
     private TextView tvUserNameHeader, tvFullNameDetail, tvPhoneDetail, tvEmailDetail, tvAddressDetail;
     private FirebaseAuth mAuth;
@@ -195,8 +196,17 @@ public class QuanLyFragment extends Fragment {
                 String c = etCon.getText().toString().trim();
                 String cur = etCur.getText().toString().trim();
                 boolean reAuth = layoutCur.getVisibility() == View.VISIBLE;
+                
                 boolean valid = n.length() >= 6 && n.equals(c);
-                btnSave.setEnabled(reAuth ? (valid && !cur.isEmpty()) : valid);
+                boolean canSave = reAuth ? (valid && !cur.isEmpty()) : valid;
+                
+                btnSave.setEnabled(canSave);
+                // Cập nhật màu sắc dựa trên trạng thái nhập liệu
+                if (canSave) {
+                    btnSave.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#72D34E")));
+                } else {
+                    btnSave.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#B0B0B0")));
+                }
             }
             @Override public void afterTextChanged(Editable s) {}
         };
@@ -259,6 +269,7 @@ public class QuanLyFragment extends Fragment {
                     dialog.findViewById(R.id.tvCurrentPasswordLabel).setVisibility(View.VISIBLE);
                     Button btnSave = dialog.findViewById(R.id.btnSavePassword);
                     btnSave.setEnabled(false);
+                    btnSave.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#B0B0B0")));
                     btnSave.setText("Lưu thay đổi");
                     Toast.makeText(getContext(), "Vui lòng xác thực lại mật khẩu cũ", Toast.LENGTH_SHORT).show();
                 } else {

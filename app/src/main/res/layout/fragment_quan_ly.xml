@@ -59,7 +59,7 @@
                 android:layout_height="wrap_content"
                 android:background="@color/white"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:paddingVertical="24dp">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -68,6 +68,7 @@
                     android:textColor="@color/black"
                     android:textSize="22sp"
                     android:textStyle="bold"
+                    android:layout_marginHorizontal="24dp"
                     android:layout_marginBottom="16dp"/>
 
                 <!-- Menu List -->
@@ -86,6 +87,7 @@
                             android:id="@+id/btnBasicInfo"
                             android:layout_width="match_parent"
                             android:layout_height="56dp"
+                            android:paddingHorizontal="24dp"
                             android:clickable="true"
                             android:focusable="true">
                             <ImageView
@@ -116,93 +118,103 @@
                         </RelativeLayout>
 
                         <!-- Expandable Info Box -->
-                        <LinearLayout
+                        <androidx.cardview.widget.CardView
                             android:id="@+id/expandableBasicInfo"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginVertical="8dp"
-                            android:background="@drawable/bg_info_box"
-                            android:orientation="vertical"
-                            android:padding="16dp"
-                            android:visibility="gone">
+                            android:layout_marginHorizontal="12dp"
+                            android:visibility="gone"
+                            app:cardCornerRadius="24dp"
+                            app:cardElevation="6dp"
+                            app:cardUseCompatPadding="true"
+                            app:cardBackgroundColor="#F8FAF8">
 
-                            <TextView
-                                android:layout_width="wrap_content"
+                            <LinearLayout
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="Tên người dùng"
-                                android:textColor="@color/black"
-                                android:textStyle="bold"
-                                android:textSize="15sp" />
-                            <TextView
-                                android:id="@+id/tvFullNameDetail"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="---"
-                                android:textColor="#888889"
-                                android:textStyle="bold"
-                                android:textSize="14sp" />
+                                android:orientation="vertical"
+                                android:padding="20dp">
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="12dp"
-                                android:text="Số điện thoại"
-                                android:textColor="@color/black"
-                                android:textStyle="bold"
-                                android:textSize="15sp" />
-                            <TextView
-                                android:id="@+id/tvPhoneDetail"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="---"
-                                android:textColor="#888889"
-                                android:textStyle="bold"
-                                android:textSize="14sp" />
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Tên người dùng"
+                                    android:textColor="@color/black"
+                                    android:textStyle="bold"
+                                    android:textSize="15sp" />
+                                <TextView
+                                    android:id="@+id/tvFullNameDetail"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="---"
+                                    android:textColor="#666666"
+                                    android:textStyle="bold"
+                                    android:textSize="14sp"
+                                    android:layout_marginBottom="12dp"/>
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="12dp"
-                                android:text="Email"
-                                android:textColor="@color/black"
-                                android:textStyle="bold"
-                                android:textSize="15sp" />
-                            <TextView
-                                android:id="@+id/tvEmailDetail"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="---"
-                                android:textColor="#888889"
-                                android:textStyle="bold"
-                                android:textSize="14sp" />
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Số điện thoại"
+                                    android:textColor="@color/black"
+                                    android:textStyle="bold"
+                                    android:textSize="15sp" />
+                                <TextView
+                                    android:id="@+id/tvPhoneDetail"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="---"
+                                    android:textColor="#666666"
+                                    android:textStyle="bold"
+                                    android:textSize="14sp"
+                                    android:layout_marginBottom="12dp"/>
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="12dp"
-                                android:text="Địa chỉ"
-                                android:textColor="@color/black"
-                                android:textStyle="bold"
-                                android:textSize="15sp" />
-                            <TextView
-                                android:id="@+id/tvAddressDetail"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="---"
-                                android:textColor="#888889"
-                                android:textStyle="bold"
-                                android:textSize="14sp" />
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Email"
+                                    android:textColor="@color/black"
+                                    android:textStyle="bold"
+                                    android:textSize="15sp" />
+                                <TextView
+                                    android:id="@+id/tvEmailDetail"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="---"
+                                    android:textColor="#666666"
+                                    android:textStyle="bold"
+                                    android:textSize="14sp"
+                                    android:layout_marginBottom="12dp"/>
 
-                        </LinearLayout>
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Địa chỉ"
+                                    android:textColor="@color/black"
+                                    android:textStyle="bold"
+                                    android:textSize="15sp" />
+                                <TextView
+                                    android:id="@+id/tvAddressDetail"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="---"
+                                    android:textColor="#666666"
+                                    android:textStyle="bold"
+                                    android:textSize="14sp" />
+
+                            </LinearLayout>
+                        </androidx.cardview.widget.CardView>
                     </LinearLayout>
 
-                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" />
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" android:layout_marginHorizontal="24dp" />
 
                     <!-- Đổi mật khẩu -->
                     <RelativeLayout
                         android:id="@+id/btnChangePassword"
                         android:layout_width="match_parent"
                         android:layout_height="56dp"
+                        android:paddingHorizontal="24dp"
                         android:clickable="true"
                         android:focusable="true">
                         <ImageView
@@ -231,13 +243,14 @@
                             app:tint="#CCCCCC" />
                     </RelativeLayout>
 
-                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" />
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" android:layout_marginHorizontal="24dp" />
 
                     <!-- Sao lưu -->
                     <RelativeLayout
                         android:id="@+id/btnBackup"
                         android:layout_width="match_parent"
                         android:layout_height="56dp"
+                        android:paddingHorizontal="24dp"
                         android:clickable="true"
                         android:focusable="true">
                         <ImageView
@@ -266,13 +279,14 @@
                             app:tint="#CCCCCC" />
                     </RelativeLayout>
 
-                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" />
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" android:layout_marginHorizontal="24dp" />
 
                     <!-- Đăng xuất -->
                     <RelativeLayout
                         android:id="@+id/btnLogout"
                         android:layout_width="match_parent"
                         android:layout_height="56dp"
+                        android:paddingHorizontal="24dp"
                         android:clickable="true"
                         android:focusable="true">
                         <ImageView
