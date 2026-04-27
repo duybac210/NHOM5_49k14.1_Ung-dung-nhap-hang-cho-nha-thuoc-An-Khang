@@ -44,7 +44,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="-20dp"
-        app:cardCornerRadius="16dp"
+        app:cardCornerRadius="0dp"
         app:cardElevation="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/headerBackground">
@@ -206,8 +206,8 @@
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:layout_centerVertical="true"
-                            android:src="@drawable/ic_lock"
-                            app:tint="@color/login_primary" />
+                            android:src="@drawable/ic_key"
+                            app:tint="#72D34E" />
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -298,7 +298,6 @@
                     </RelativeLayout>
 
                 </LinearLayout>
-
             </LinearLayout>
         </ScrollView>
     </androidx.cardview.widget.CardView>
