@@ -116,8 +116,8 @@ public class NhapHangAdapter extends FirestoreRecyclerAdapter<NhapHang, NhapHang
         btnBoQua.setOnClickListener(v -> dialog.dismiss());
         btnXoa.setOnClickListener(v -> {
             dialog.dismiss();
-            repository.deleteNhapHang(orderId).addOnSuccessListener(aVoid -> {
-                Toast.makeText(view.getContext(), "Đã xóa thành công", Toast.LENGTH_SHORT).show();
+            repository.cancelNhapHang(orderId).addOnSuccessListener(aVoid -> {
+                Toast.makeText(view.getContext(), "Đã hủy đơn thành công", Toast.LENGTH_SHORT).show();
                 expandedPosition = -1;
             });
         });

@@ -89,7 +89,7 @@ public class ChiTietNhapHangActivity extends AppCompatActivity {
         Button btnXoa = dialogView.findViewById(R.id.btnXoaConfirm);
         TextView tvMessage = dialogView.findViewById(R.id.tvDeleteMessage);
 
-        tvMessage.setText("Xóa phiếu nhập hàng " + (nhapHangId != null ? nhapHangId : "") + "?");
+        tvMessage.setText("Hủy phiếu nhập hàng " + (nhapHangId != null ? nhapHangId : "") + "?");
 
         btnBoQua.setOnClickListener(v -> dialog.dismiss());
         btnXoa.setOnClickListener(v -> {
@@ -102,9 +102,9 @@ public class ChiTietNhapHangActivity extends AppCompatActivity {
 
     private void deleteOrder() {
         if (nhapHangId == null) return;
-        repository.deleteNhapHang(nhapHangId).addOnSuccessListener(aVoid -> {
+        repository.cancelNhapHang(nhapHangId).addOnSuccessListener(aVoid -> {
             if (isFinishing() || isDestroyed()) return;
-            Toast.makeText(this, "Đã xóa thành công", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Đã hủy đơn thành công", Toast.LENGTH_SHORT).show();
             finish(); 
         });
     }

@@ -108,11 +108,14 @@ public class NhapHangRepository {
     }
 
     // --- THAO TÁC DỮ LIỆU ---
-    public Task<Void> deleteNhapHang(String orderId) {
+    public Task<Void> cancelNhapHang(String orderId) {
         WriteBatch batch = db.batch();
-        batch.delete(db.collection("NhapHang").document(orderId));
+        // Thay vì xóa, chúng ta cập nhật trạng thái thành 0 (Đã hủy)
+        batch.update(db.collection("NhapHang").document(orderId), "trangThai", 0);
+        
         return getLoHangByNhapHangId(orderId).continueWithTask(task -> {
             if (task.isSuccessful() && task.getResult() != null) {
+                // Vẫn xóa các lô hàng để giải phóng tồn kho thực tế
                 for (DocumentSnapshot doc : task.getResult()) batch.delete(doc.getReference());
             }
             return batch.commit();
@@ -172,7 +175,9 @@ public class NhapHangRepository {
             long start = current + 1;
             long end = current + count;
 
-            transaction.update(counterRef, "current", end);
+            Map<String, Object> counterData = new HashMap<>();
+            counterData.put("current", end);
+            transaction.set(counterRef, counterData, com.google.firebase.firestore.SetOptions.merge());
 
             List<String> ids = new ArrayList<>();
             for (long i = start; i <= end; i++) {

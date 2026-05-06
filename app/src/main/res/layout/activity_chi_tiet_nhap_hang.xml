@@ -166,7 +166,7 @@
                         app:backgroundTint="#E53935"
                         android:minHeight="0dp"
                         android:minWidth="0dp"
-                        android:text="Xóa"
+                        android:text="Hủy"
                         android:textAllCaps="false"
                         android:textColor="@color/white"
                         android:textSize="12sp"

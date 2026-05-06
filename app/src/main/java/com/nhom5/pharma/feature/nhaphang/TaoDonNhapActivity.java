@@ -351,7 +351,11 @@ public class TaoDonNhapActivity extends AppCompatActivity {
                     
                     // Thêm/Cập nhật đơn nhập vào batch
                     DocumentReference orderRef = db.collection("NhapHang").document(customId.trim());
-                    batch.set(orderRef, order, com.google.firebase.firestore.SetOptions.merge());
+                    if (isEditMode) {
+                        batch.set(orderRef, order, com.google.firebase.firestore.SetOptions.merge());
+                    } else {
+                        batch.set(orderRef, order); // không merge -> không ghi đè đơn cũ nếu trùng ID
+                    }
                     
                     // Nếu là chế độ sửa, xóa các lô hàng cũ trước khi thêm mới
                     if (isEditMode) {

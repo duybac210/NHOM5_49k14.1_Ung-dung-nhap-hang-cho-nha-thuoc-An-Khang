@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace 'com.nhom5.pharma'
-    compileSdk 36
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.nhom5.pharma"
         minSdk 24
-        targetSdk 36
+        targetSdk 34
         versionCode 1
         versionName "1.0"
 
@@ -30,6 +30,7 @@ android {
 }
 
 dependencies {
+    implementation libs.core.ktx
     implementation libs.appcompat
     implementation libs.material
     implementation libs.activity

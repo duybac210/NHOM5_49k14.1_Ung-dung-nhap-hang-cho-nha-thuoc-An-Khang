@@ -29,7 +29,7 @@
     <string name="supplier_email">Email</string>
     <string name="supplier_total_purchase">Tổng mua</string>
     <string name="supplier_add_desc">Thêm nhà cung cấp mới</string>
-    <string name="import_order_delete_message">Xóa phiếu nhập hàng %1$s?</string>
+    <string name="import_order_delete_message">Hủy phiếu nhập hàng %1$s?</string>
     <string name="unknown_label">Không xác định</string>
     <string name="import_status_imported">Đã nhập kho</string>
     <string name="import_status_cancelled">Đã hủy</string>
